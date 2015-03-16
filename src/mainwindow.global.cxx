@@ -1,0 +1,93 @@
+/************************************************************************/
+/*                                                                      */
+/*         XX      XX W           W  III  NN    N    GGGG               */
+/*           XX  XX    W         W    I   N N   N   G                   */
+/*             XX       W   W   W     I   N  N  N   G  GGG              */
+/*           XX  XX      W W W W      I   N   N N   G    G              */
+/*         XX      XX     W   W      III  N    NN    GGGG               */
+/*                                                                      */
+/*  Version 2.0                                    U.Lehnert  6/2011    */
+/*                                                                      */
+/************************************************************************/
+
+
+/*
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+*/
+
+void MainWindow::on_globalSettingsModelName_editingFinished()
+{
+  model->setName(ui.globalSettingsModelName->text());
+  this->setWindowTitle("XWing2 - " + model->getName());
+  model->update();
+}
+
+void MainWindow::on_globalSettingsModelAuthor_editingFinished()
+{
+  model->setAuthor(ui.globalSettingsModelAuthor->text());
+  model->update();
+}
+
+void MainWindow::on_globalSettingsMass_editingFinished()
+{
+  model->setMass(ui.globalSettingsMass->value());
+  model->update();
+}
+
+void MainWindow::on_globalSettingsReferenceSpan_editingFinished()
+{
+  model->setRefSpan(ui.globalSettingsReferenceSpan->value());
+  model->update();
+}
+
+void MainWindow::on_globalSettingsReferenceArea_editingFinished()
+{
+  model->setRefArea(ui.globalSettingsReferenceArea->value());
+  model->update();
+}
+
+void MainWindow::on_globalSettingsReferenceChord_editingFinished()
+{
+  model->setRefChord(ui.globalSettingsReferenceChord->value());
+  model->update();
+}
+
+void MainWindow::on_globalSettingsXinfinity_editingFinished()
+{
+  model->setXinfinity(ui.globalSettingsXinfinity->value());
+  model->update();
+  if (flowVLM != NULL) delete flowVLM;
+  flowVLM = NULL;
+  if (flowSPM != NULL) delete flowSPM;
+  flowSPM = NULL;
+}
+
+void MainWindow::on_globalSettingsNumberWakePanels_valueChanged(int value)
+{
+  model->setWakePanelNumber(value);
+  if (flowVLM != NULL) delete flowVLM;
+  flowVLM = NULL;
+  if (flowSPM != NULL) delete flowSPM;
+  flowSPM = NULL;
+}
+
+void MainWindow::on_globalSettingsAoA_editingFinished()
+{
+  model->setAOA(ui.globalSettingsAoA->value());
+  model->update();
+}
+

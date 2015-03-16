@@ -1,0 +1,347 @@
+/************************************************************************/
+/*                                                                      */
+/*         XX      XX W           W  III  NN    N    GGGG               */
+/*           XX  XX    W         W    I   N N   N   G                   */
+/*             XX       W   W   W     I   N  N  N   G  GGG              */
+/*           XX  XX      W W W W      I   N   N N   G    G              */
+/*         XX      XX     W   W      III  N    NN    GGGG               */
+/*                                                                      */
+/*  Version 2.0                                    U.Lehnert 11/2013    */
+/*                                                                      */
+/************************************************************************/
+
+***** To-Do Liste :
+
+- bei der Berechnung der Strömungsgeschwindigkeiten für die Wake-Relaxation
+  muß das jeweilige Wake-Filament ausgeschlossen werden.
+  Die Strömungsrichtung für den ersten Punkt muß knapp hinter der Endleiste berechnet werden
+
+- Wake-Modell vom Rest des Strömungsmodells entkoppeln
+
+- separate Skalierung für VLM und SPM Colorcodes
+  Farbskala invertieren, damit große Werte rot und negative blau werden
+
+- Abort in Matrix-Schleife implementiert, funktioniert im Prinzip, aber...
+  - wird auf Hypnos erst nach sehr langer Zeit wirksam
+  - wird auf FWL08 gar nicht wirksam
+
+- das Sarabande-Modell mit 5124 Parametern braucht
+  - auf FWL08 (2 Prozesse) 45s
+  - auf Hypnos (16 Threads) 77s
+  - auf Hypnos (4 Threads) 75s (16 threads angezeigt)
+  ! debuggen (print thread index and panel number)
+
+- die Lösung ist nicht stabil gegen Änderung der Panel-Zahlen
+
+    XWing2 model read : /home/ulf/Programming/XWing2/data/test2.xw2
+
+    nChord		20		30		40		60		80		99		120
+    cL(loc)		0.353842	0.375362	0.392009	0.422747	0.458240	0.501596	0.566945
+    cD(loc)		0.012356	0.013108	0.013689	0.014763	0.016002	0.017516	0.019798
+    cL(wake)		0.430467	0.453813	0.471691	0.506556	0.549887	0.605463	0.692968
+    cD(wake)		0.003213	0.003563	0.003841	0.004407	0.005158	0.006202	0.008033
+    cL(pr.)		0.295021	0.358845	0.394269	0.442716	0.489901	0.545400	0.630009
+    cD(pr.)		0.018785	0.021282	0.022020	0.022546	0.023159	0.024119	0.025742
+
+- Vom SourceDoubletModel verbleiben bei der Lösung erheblich Normalgeschwindigkeiten.
+  Das ist möglicherweise eine Quelle von Ungenauigkeiten und Instabilitäten.
+  Eventuell kan man die Lösung iterativ verfeinern.
+
+- Wake mit N Panels, das erste 1/100 chord tief, dann logarithmisch wachsend bis zu xInifnity
+    das erste Panel entspricht in seine Ausrichtung der Endfahne (Kutta-Bedingung), alle weiteren
+    sind nach der freien Strömung ausgerichtet
+    SourceDoubletModel::createSegmantWake
+    globalSettingsNumberWakePanels -> Handling,Save,Load,Update
+    - sinnvolle Segmentanzahl für die Stromlinien (variabel? - konfiguriert?)
+
+
+- Der induzierte Widerstand wird berechnet als die halbe von der
+    induzierten Strömung in der Trefftz-Ebene (im Unendlichen) auf die
+    dorthin projizierten gebundenen Wirbel (Munkscher Verschiebungssatz)
+    generierte Kraft in Strömungsrichtung
+  Aus der Forderung nach Konstanz des Abwindes (orthogonal zum Wirbel)
+    kann auch die optimale Auftriebsverteilung bestimmte werden.
+    Diese wird auf cL=1 skaliert abgespeichert und bei Grafikausgabe auf das aktuelle cL skaliert
+
+- Bei Eingabe eines Filenamens für SaveAs FileExtension automatisch anhängen
+  (für alle Schreibaktionen immer richtige Extension erzwingen)
+
+- berechne Roll- und Nickmomente5
+
+- bessere Farbwahl für die 2D-Plots
+  beide Modelle in den 2D-Plots vergleichen, CheckBox für Inklusion
+  Nullinie zeichnen5
+
+- check return values from BLAS functions - error handling
+
+- Neutralpunktsberechnung :
+  - Perturbationsgeschwindigkeit senkrecht zur Anströmung
+  - Gleichungssystem mittels bereits erfolgter LU-Dekomposition lösen
+    A (x + dx) - (b + db) = 0
+    A x - b = 0
+    A dx - db = 0
+  - Perturbations-Kraft =
+      von der ungestörten Strömung auf den dx-Singularitäten erzeugte Kräfte
+    + von den Störkomponenten der Geschwindigkeit auf den x-Singularitäten erzeugte Kräfte
+  mit demselben Pertubationsansatz können auch Roll- Nick und Gierdämpfung berechnet werden
+
+- iterative Lösung der Strömungsgleichung ausprobieren ?!
+
+- Visualisierung des Geschwindigkeitsfeldes der Strömung
+  a) an einem Querschnitt
+  b) in der Trefftz-Ebene
+
+- mehr Panels für den Randbogenabschluß (um Symmetrieeffekten vorzbeugen)
+
+- Export für XWing V1.0 ist angefangen, aber noch nicht funktional
+
+- wake Linien auf Schnittpunkte mit Panels überprüfen
+  Ausrichtung der wake mit der freien Strömung
+  Normalenvektor anhand der Geometrie der Endleiste
+
+- if the airfoil cross sectional area is negative reverse the ordering of the points
+
+- Unterteilung von SourceDoubletModel in zwei Klassen :
+  eine, die nur die Triangulation der Modelloberfläche enthält
+  eine, die für die aerodynamische Lösung zuständig ist
+
+- initiales Setting der Kameraführung und View-Angle
+
+- Zoom-All - vor allem beim Laden eines Modells
+
+- Validität der airfoil nach dem Laden muß überprüft werden
+  auch wenn bei der Normalisierung was schiefgeht, wird jetzt ein Datenbankeintrag angelegt
+
+- mesh->isValid() muß immer überprüft werden, wenn die Triangulation ausgeführt worden ist
+  und ungültige Triangulationen gleich wieder gelöscht. Im Moment werden auch nicht valide
+  Triangulationen gerendert (zur Diagnostik bei der Entwicklung).
+  Die Gültigkeitsprüfung sollte eventuell noch etwas intensiviert werden
+  und nicht nur die Anzahl der Panels verifiziert werden.
+  (alle Panels konvex, geschlossene Oberfläche, Panels koplanar)
+  (List der Punkte, keine doppelten Punkte, jeder Punkt gehört
+  zu mindestens drei Paneln, keine einander durchdringenden Panel,
+  alle Kanten gehören zu genau zwei Panels - topologische Geschlossenheit)
+
+- GeometryWing::sourceVTK ist zu überarbeiten
+  (warum geht lineColors->Delete() schief ?
+  das ist ein smartPointer, der erledigt das selbst wenn er nicht mehr benötigt wird?)
+
+- check for memory leaks (how?)
+
+- Geometry Segment : Klappenausschlag mit allen Konsequenzen für Grafik etc.
+
+- das Laden von Modellen ist nicht restriktiv genug, alle möglichen Dateien
+  ergeben valide Datensätze
+
+- Darstellung von Profilen in der Grafik
+
+- Lichtquellen für Grafik, Presets für Kamera
+  Sichtbarkeit von Linien verbessern
+  Kameraführung so, daß um den sichtbaren Bereich des Modells herum gedreht wird
+
+- Anzeige des Drehzentrums (ist das immer die Bildmitte?), Achsendarstellung
+
+***** Version History :
+
+Version 0.20 :  VortexLatticeModell hinzugefügt
+                Relaxation der Wake (Aligned zum Strömungsfeld)
+
+Version 0.19 :  Berechnung der Einflußmatrix : Parallelisierung mit OpenMP
+		Umstellung von GSL auf OpenBLAS
+		Profil-Auflösung an der Endleiste verringert (keine zu schmalen Panels mehr)
+
+Version 0.18 :  Quelltext vom mainwindow.cxx auf 5 Dateien verteilt
+		GSL Bibliothek mit call-back Funktion für die Fortschrittsanzeige
+		Berechnung von Auftriebs- und Widerstandsbeiwert aus der (fernen) Wake
+		STL Export
+		erweitertes update() der Modellgeometrie zur Sicherstellung der Konsistenz
+		Darstellung und UI für die Farbskala
+
+Version 0.17 :  Plot der Auftriebsverteilung
+		Berechnung von Auftriebs- und Widerstandsbeiwert aus der lokalen Zirkulation
+		Modellierung mit vordefinierter Source-Verteilung und
+		  verschwindendem Störpotential auf der Innenseite der Panels
+		  verschwindende Normalgeschwindigkeit an den Wake-Kontrollpunkten
+
+Version 0.16 :  zusätzlicher Renderer für die 2D-Plots
+		wake mit Doublet Panels
+		Berechnung der Potentiale
+		Modellierung mit Morino-Formulierung und
+		  verschwindender Normalgeschwindikeit für die Wake-Kontrollpunkte
+		erhebliche nichverschwindende Normalgeschwindigkeitskomponenten
+		  am Flügelabschluß
+
+Version 0.15 :  save text to file
+		in airfoil linalgebra durch GSL ersetzt
+		"Wollfaden"-Darstellung
+		Randbogen-Abschluß der Tragflächen, Modellierung mit variablen Source-Termen
+
+Version 0.14 :	Singularitätenverteilung auf der realen Oberfläche der Flügel
+		Strömungssimulation mit fixer Source-Verteilung und variablen Doublett-Stärken,
+		   Randbedingung ist die verschwindende Normalgeschwindigkeitauf der Oberfläche
+		initiales Setting der Fenstergeometrie für das Grafikfenster funktionsfähig
+		Steuerung der Ausgabe im Grafikfenster bei Anzeige des Strömungmodelles
+		ProgressBar für Berechnung der Induktionsmatrix
+		Listenausgabe der Lösungsparameter
+
+Version 0.13 :  Grafik in separatem Fenster
+                Strömungsmodell mit Doublet-Paneln in der Camber-Ebene des Flügels
+                Wake wird in Streifen zwischen zwei Stromlinien und einem vrbindenden
+                  geraden Wurzelwirbel modelliert. Stromlinien bestehen aus mehreren
+                  (derzeit nur einem) stückweise geraden Wirbelfäden
+		Randbedingung für das Strömungsmodell ist verschwindende Normalgeschwindigkeit
+		  an den Kontrollpunkten
+		Wake ist komplett unabhängig, die Kutta-Bedingung wird durch einen
+		  Kontrollpunkt unmittelbar hinter der Endleiste in Panelmitte erzwungen
+
+Version 0.12 :  Modellierung wird geändert: statt dem Vortex-Ring Äquivalent
+                   werden Vierecke als FlatPanel generiert
+                   triangle.cpp und vortex.cpp entfallen
+                build-System mit qmake : XWing2.pro
+                Nutzung der GNU scientific library
+                VTK 6.0.0 neue Version
+                erste Version, die wirklich was rechnet!
+
+Version 0.11 :  Interpolationsroutinen für Camber-Linien
+		Mapping von Camber-Linien in 3D-Koordinate
+		Triangulation des Modells
+		reference chord defined
+
+Version 0.10 :  global model information added
+                die Lade- und Löschbefehle für die Profil-Datenbank in das Menü verlagert
+                Anzeigen für Fläche, Streckung, Spannweite, lMy ...
+	        Umschaltung zwischen den verschiedenen Grafikdarstellungen
+
+Version 0.06 :  verwalte Profile (Datenbank) und station Referenzen
+		airfoil sanity check added
+		speichern und laden von Profilen (Datenbank) mit den *xw2 Files
+		Laden und Löschen von Profilen aus der Datenbank
+		Save mit gespeichertem Filenamen und SaveAs implementiert
+		Index-Tag für die airfoil-Einträge in der Datenbank
+
+Version 0.05 :  einigermaßen funktionsfähiges GUI
+
+Version 0.04 :  erster Version unter Nutzung von VTK-Testcode
+
+Version 0.03 :  letzte Version mit direktem Rendering über OpenGL
+
+***** Kommentare :
+
+- die Wahl von xInfinity hat drastischen Einfluß (Preset auf 10m sinnvoll)
+
+- bei Anstieg von 2pi wird ca=1 bei 0.159 rad (=9.12°) erreicht
+
+! Aufpassen, es muß IMMER ein valides Modell existieren, wenn irgendwelche
+  Signale wirksam werden könnten
+
+***** Bugs :
+
+- Absturz beim Laden eines neuen Modells, während die Strömungsdarstellung
+  eines bereits fertig gerechneten eingeschaltet ist.
+  vermutlich behoben: Die Darstellung greift auf das Strömungmodell zu. Irgendein Zugriff
+  erfolgt, nachdem das Modell bereits gelöscht ist.
+  ==> saubere Prüfung auf Existenz der Lösung in das Rendering einbeziehen.
+
+- Darstellung der Triangulation mit den Transparenten Dreiecken sieht komisch aus,
+  Die Tiefenstaffelung wird scheinbar nicht korrekt wiedergegeben, die zuletzt
+  generierten Testdreiecke scheinen immer im Vordergrund zu sein.
+  workaround : bei opaker Darstellung erscheint alles richtig
+
+- Beim Umschalten zwischen verschiedenen Grafiken wird die BoundingBox
+  nicht aktualisiert und Teile des Modells u.U. abgeschnitten.
+  Das betrifft vor allem Testcode, wo die von den Grafikobjekten
+  eingenommenen Raumbereiche sich deutlich unterscheiden.
+
+- load : Profil hat fehlerhafte Daten, aber korrekten Namen und Punktezahl
+  der Fehler liegt irgendwie an dem Profil (HN-1033A)
+  normalize() geht schief : die Nase wird nicht gefunden
+  (systemabhängig, gefunden nur auf FWL08, auf dem Schleppi geht es)
+
+- Filter für die Filenamen beim Öffnen eines Modells funktionieren nicht
+  (systemabhängig, gefunden nur auf FWL08, auf dem Schleppi geht es)
+
+***** behobene Bugs:
+
+- rekursiver Aufruf von MainWindow::updateGeometryTab()
+  QObject::blockSignals() wird für jedes Signal gesetzt
+
+- Wenn das Laden eines Modells abgebrochen wird und vorher
+  ein trianguliertes Modell existierte, stürzt die Anzeige der Triangulationsgrafik ab
+  (Pointer wird beim Start auf NULL gesetzt, dann ein Modell
+  generiert, dann dieses gelöscht und jetzt der Pointer auf NULL getestet)
+  behoben : delete löscht zwar das Objekt, läßt aber den Pointer stehen.
+  Außer dem delete muß auch der Pointer auf NULL gesetzt werden, denn das wird getestet,
+  um die Existenz des Triangulationsmodells zu ermitteln.
+
+- default wing mit verschiedenen Profilen an den beiden Enden abgespeichert
+  wird nicht korrekt zurückgeladen, File ist OK
+  Ursache : das Modell wird richtig geladen, danach wird die Profildatenbank geladen
+  und zuletzt die Einträge in der Auswahlbox generiert. Dabei wird ein current-changed
+  Signal erzeugt, das den Wert auf Strak ändert.
+  Problem : das Signal ist gespeichert mit der Indexnummer und wird irgendwann
+  später wirksam. Kann man das irgendwie abfangen ?
+  behoben : ui.selectAirfoil->blockSignals() wird gesetzt, während die
+  Liste neu aufgebaut wird.
+
+- load ClubStar(old) - saveAs Test (File seems problematic) - load test -> Crash
+  Laden des zweiten Modells bringt QList::"index out of range" (also Profil-Datenbank?)
+  behoben : model::destruktor arbeitete mit falschen Indizes beim Datenbankzugriff
+
+- Versuch ein file zu öffnen, wenn der Cursor in einem der Geometry-Tabs steht
+  lockt lange den Cursor und endet mit einem Speicherfehler
+  behoben : in FileOpen() wird zuerst das Modell gelöscht (delete model),
+  dann kommt die Dialogbox, die den Fokus von der GroupBox abzieht.
+  Unmittelbar nach Rückkehr aus der Dialogbox wird das Signal wirksam
+  und versucht das Modell neu zu zeichnen, aber das ist ja nicht mehr existent.
+
+- airfoil *.dat laden -> Speicherfehler
+  der Dialog geht noch sauber über die Bühne, bei CANCEL bleibt auch alles intakt
+  behoben : es müssen IMMER alle Felder initialisiert werden, sonst geht der Destruktor baden
+
+- Abbruch des Ladens eines Modells endet mit einem Speicherfehler
+  Laden eines nicht validen Files geht auch schief
+  behoben : die Existenz des Modells wird durch einen Pointer-Test auf 0 verifiziert,
+  das geht nicht gut, die Validität muß immer überprüft werden und am
+  Ende muß auch immer ein valides (wenn auch default) Modell stehen
+
+- Segmentfläche etc. ändern sich, wenn ich den Anstellwinkel einer Station ändere
+  behoben : Benutze Nasenleiste (nicht c/4-Linie) für Spannweitenberechnung
+
+- bei Löschen von Profil Einträge aus der Auswahlbox -> Programmabsturz
+  auch einzelnes Entfernen der Einträge geht schief
+  wenn das Löschen vor delete des Modells erfolgt geht es ?!
+  man darf nur zugreifen, solange ein Modell existiert, warum ?
+  behoben : es wird ein on_selectAirfoil_currentIndexChanged(int index) Signal generiert,
+  das versucht auf das Modell zuzugreifen und die Profilinformation zu setzen - das geht schief
+
+***** Performance / Benchmark *******
+
+- das Sarabande-Modell mit 5124 Parametern braucht
+  - auf FWL08 (2 Prozesse) 45s
+  - auf Hypnos (16 Threads) 77s
+  - auf Hypnos (4 Threads) 75s (16 threads angezeigt)
+  ! debuggen (print thread index and panel number)
+
+  Auf FWL08 schafft anfangs Thread 1 immer einige Panels, bis Thread 0 mal
+  eines geschafft hat. Thread 1 fängt einfach bei 400 (von 800) Index an.
+  Am Ende hat Thread 0 dann noch 100 Panels zu rechnen, wenn Thread 1 schon
+  nichts mehr macht.
+
+  Auf Hypnos wird immer mit 16 threads gerechnet, egal mit wieviel Prozessen
+  ich den interaktiven Job gestartet habe.
+  qsub -I -X -l nodes=1:ppn=8
+  Die Panels werden ebenso a priori auf die Threads verteilt.
+  Die Threads scheinen aber sequentiell alle auf einem Kern abgearbeitet
+  zu werden, es kommt immer ein paar Ausgaben von einem Thread, dann vom
+  nächsten, bis alle fertig sind.
+  Test : "computing on 1 cores" bäh
+  das ist auch bei direktem login auf den compute node genauso
+
+***** build libraries *****
+
+***** build how-to (qmake):
+
+XWing.pro ist von Hand erstellt - kein qmake -project ausführen !
+XWing.pro nötigenfalls editieren (Dateipfade für die Bibliotheken)
+qmake
+make
