@@ -81,7 +81,6 @@ public slots:
     void DeleteAirfoil();
     void ExportXWing1();
     void ExportSTL();
-    void RunScript();
     void HelpAbout();
 
 private slots:
