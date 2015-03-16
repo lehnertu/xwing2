@@ -42,10 +42,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 MainWindow::MainWindow(QMainWindow *parent)
     : QMainWindow(parent)
 {
-    // setup python scripting
-    // PythonQt::init();
-    PythonQt::init(PythonQt::IgnoreSiteModule | PythonQt::RedirectStdOut);
-    // pythonModule = PythonQt::self()->getMainModule();
 
     // setup user interface
     this->setLocale(QLocale::C);
