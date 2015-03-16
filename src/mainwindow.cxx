@@ -39,9 +39,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "vtkContextScene.h"
 #include "vtkChartXY.h"
 
-#include "PythonQt.h"
-#include "PythonQtScriptingConsole.h"
-
 MainWindow::MainWindow(QMainWindow *parent)
     : QMainWindow(parent)
 {
@@ -70,17 +67,6 @@ MainWindow::MainWindow(QMainWindow *parent)
 
     // slots mit Namen, die Signalen der enstprechenden UI-Widgets entsprechen,
     // werden automatisch beim Programmstart mit diesen verknüpft
-
-    // look for all PYTHON scripts we can find and add them to the menu
-    ui.menuScript->addAction(QString("test.py"), this, SLOT(RunScript()));
-    /*
-    for (int i = 0; i < MaxRecentFiles; ++i) {
-         recentFileActs[i] = new QAction(this);
-         recentFileActs[i]->setVisible(false);
-         connect(recentFileActs[i], SIGNAL(triggered()),
-                 this, SLOT(openRecentFile()));
-     }
-     */
 
     // create a separate window for rendering the visualization
     graphWindow = new QWidget(this, Qt::Window | Qt::CustomizeWindowHint |
@@ -537,50 +523,6 @@ void MainWindow::ExportSTL()
   {
     ui.statusbar->showMessage(QString("no valid surface mesh model available - cannot export."));
   }
-}
-
-void MainWindow::RunScript()
-{
-  QAction *action = qobject_cast<QAction *>(sender());
-  if (action)
-  {
-    QString s = action->text();
-    ui.statusbar->showMessage(QString("calling ")+s);
-  };
-
-  PythonQtObjectPtr  mainPy = PythonQt::self()->getMainModule();
-  PythonQtScriptingConsole console(NULL, mainPy);
-
-  // get a smart pointer to the __main__ module of the Python interpreter
-  // PythonQtObjectPtr context = PythonQt::self()->getMainModule();
-  // add a QObject as variable of name "example" to the namespace of the __main__ module
-  // PyExampleObject example;
-  // context.addObject("example", &example);
-  // do something
-  mainPy.evalScript("print 'answer=', 19*2+4");
-  mainPy.evalScript("def multiply(a,b):\n return a*b;\n");
-  QVariantList args;
-  args << 42 << 47;
-  QVariant result = mainPy.call("multiply", args);
-
-  // pythonModule = PythonQt::self()->getMainModule();
-  // pythonModule = PythonQt::self()->createUniqueModule();
-  // PythonQt::self()->evalFile(pythonModule,"/home/lehnertu/Programming/XWing2/scripts/test.py");
-  // PythonQt::self()->evalScript(pythonModule,"print 'I say 42.'");
-  /*
-  pythonModule.evalFile("/home/lehnertu/Programing/XWing2/scripts/test.py");
-  QVariant result = pythonModule.getVariable("answer");
-  printf("PYTHON sais %d\n",result.toInt());
-  */
-  result = mainPy.evalScript("19*2+4", Py_eval_input);
-  printf("PYTHON sais %d\n",result.toInt());
-  /*
-  result = pythonModule.evalScript("answer = 19*2+4\n answer", Py_eval_input);
-  printf("PYTHON sais %d\n",result.toInt());
-  result = pythonModule.getVariable("answer");
-  printf("PYTHON sais %d\n",result.toInt());
-  */
-  console.show();
 }
 
 void MainWindow::HelpAbout()
