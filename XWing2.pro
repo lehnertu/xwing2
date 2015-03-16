@@ -42,11 +42,6 @@ VTK_LIB_PATH = $$VTK_PATH/lib/
 
 INCLUDEPATH += $$VTK_INCLUDE_PATH
 
-# PythonQt for embedded Python scripting
-PYTHON_PATH = /usr/include/python2.7
-PYTHONQT_PATH = /usr/include/PythonQt
-INCLUDEPATH += $$PYTHONQT_PATH $$PYTHON_PATH
-
 MOC_DIR = ./obj
 UI_SOURCES_DIR = ./src
 UI_HEADERS_DIR = ./obj
@@ -67,8 +62,7 @@ HEADERS += src/airfoil.h \
            src/streamline.h \
            src/vector.h \
            src/vortexlatticemodel.h \
-           src/wakestripe.h \
-           src/PythonQtScriptingConsole.h
+           src/wakestripe.h
 
 FORMS += src/mainwindow.ui
 
@@ -91,8 +85,7 @@ SOURCES += src/airfoil.cxx \
            src/streamline.cxx \
            src/vector.cxx \
            src/vortexlatticemodel.cxx \
-           src/wakestripe.cxx \
-           src/PythonQtScriptingConsole.cpp
+           src/wakestripe.cxx
 
 LIBS += -L$$VTK_LIB_PATH \
 	-lvtkChartsCore-6.0 \
@@ -117,8 +110,6 @@ LIBS += -L$$VTK_LIB_PATH \
 	-lvtkIOImage-6.0 \
 	-lvtksys-6.0 \
 	$$OPEN_BLAS_PATH/lib/libopenblas.a \
-	-lpython2.7 \
-	-lPythonQt \
 	-lgomp
 
 QMAKE_CXXFLAGS += -Wno-deprecated \
