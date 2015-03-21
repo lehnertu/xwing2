@@ -103,11 +103,11 @@ class SourceDoubletModel
     // computed from the solved flow model
     void flowField(int np, Vector *x, Vector *v);
     Vector flowPoint(Vector x);
-
+    
     // compute relaxed wake position aligned
     // with the computed flow field
     void relaxWake();
-
+    
     // compute lift and drag from the local velocities and singularity strengths
     void analyzeCirculation();
 
@@ -145,42 +145,50 @@ private:
     // We list which type of singularity is solved for on each panel.
     QList<variableSigularityType> *varType;
 
-    // independant wake simulation
+    // attached wake simulation
     // From the corner points of the trailing panels free vortex lines emanate.
     // Two neighboughring vortices define a wake stripe alike a horse-shoe vortex
     int NumberOfFilaments;
     QList<Streamline*> *wakelines;
     int NumberOfWakes;
     QList<WakeStripe*> *wake;
+    // every wake strip has two parent panels,
+    // one with the same orientation, one with the opposite
+    QList<int> *wakeParentPositive;
+    QList<int> *wakeParentNegative;
 
     // Flow boundary conditions are enforced at a number of control points.
-    // These comprise the panel centers and the wake control points.
+    // This model has one control point per surface panel located at the panel center.
     // The panel control points are displaced 0.1mm to the in/outside
     // to stay well clear off the singularity jump across the panel
     // all the following arrays only exist if valid == TRUE
-    int NumberCP;
-    Vector *ControlPoint;	// coordinates of the control points
+    Vector *InnerControlPoint;	// coordinates of the control points
     Vector *normal;		// surface normals at all CP
     boundaryConditionType *BC;	// the type of boundary condition to be enforced at a given CP
 
     // all the following arrays only exist if validSolution == TRUE
     Vector vInfinity;		// undisturbed velocity vector (free stream)
-    double *sigSolution;	// [NumberOfPanels] the source strength for all panels
+    double *sigSolution;	// the source strength for all panels
     double sigMin, sigMax;
-    double *muSolution;		// [NumberCP] the doublet strength for all panels and wakes
+    double *muSolution;		// the doublet strength for all panels
     double muMin, muMax;
-    Vector *vSolution;		// [NumberCP] flow velocity at the control points
+    double *muWake;		// the doublet strength for all wakes
+    Vector *vSolution;		// flow velocity at the control points
     double vMin, vMax;
-    double *cpSolution;		// [NumberCP] the pressure coefficient
+    double *cpSolution;		// the pressure coefficient
     double cpMin, cpMax;
-    double *phiSolution;	// [NumberOfPanels] perturbation potential at the inside of the panels
+    double *phiSolution;	// perturbation potential at the inside of the panels
     double phiMin, phiMax;
 
     // these arrays store the influence matrices of the panels and wakes
+    // for solid panels there are sources and doublets
+    // for wakes there are the doublets, only
     Vector *sourceInducedVelocity;
     Vector *doubletInducedVelocity;
+    Vector *wakeInducedVelocity;
     double *sourceInducedPotential;
     double *doubletInducedPotential;
+    double *wakeInducedPotential;
 
     // wake properties in the Trefftz plane
     bool Trefftz_data_avail;	// whether these memory fields are allocated

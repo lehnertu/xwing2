@@ -30,6 +30,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
 #include <stdio.h>
+#include <stdlib.h>
+
 #include "sourcedoubletmodel.h"
 #include "airfoil.h"
 
@@ -76,6 +78,9 @@ SourceDoubletModel::SourceDoubletModel(Model *geometrymodel)
   varType = new QList<variableSigularityType>();
   wakelines = new QList<Streamline*>();
   wake = new QList<WakeStripe*>();
+  wakeParentPositive = new QList<int>();
+  wakeParentNegative = new QList<int>();
+
   // we need the free stream vector to create the wake mesh
   double aoa = model->getAOA();
   vInfinity = Vector(cos(M_PI/180.0*aoa), 0.0, sin(M_PI/180.0*aoa));
@@ -261,6 +266,8 @@ SourceDoubletModel::SourceDoubletModel(Model *geometrymodel)
 	varType->clear();
 	wakelines->clear();
 	wake->clear();
+	wakeParentPositive->clear();
+	wakeParentNegative->clear();
         return;
       };
     };
@@ -302,6 +309,22 @@ SourceDoubletModel::SourceDoubletModel(Model *geometrymodel)
       QString("The length of the list of wakes differes from the counted number of generated stripes."));
     valid = FALSE;
   };
+  if (NumberOfWakes != wakeParentPositive->count())
+  {
+    Globals::MainTextDisplay->append(
+      QString("\nThis should never happen - program error"));
+    Globals::MainTextDisplay->append(
+      QString("The length of the list of wake parents differes from the counted number of generated stripes."));
+    valid = FALSE;
+  };
+  if (NumberOfWakes != wakeParentNegative->count())
+  {
+    Globals::MainTextDisplay->append(
+      QString("\nThis should never happen - program error"));
+    Globals::MainTextDisplay->append(
+      QString("The length of the list of wake parents differes from the counted number of generated stripes."));
+    valid = FALSE;
+  };
   if (NumberOfFilaments != wakelines->count())
   {
     Globals::MainTextDisplay->append(
@@ -312,32 +335,21 @@ SourceDoubletModel::SourceDoubletModel(Model *geometrymodel)
   };
   if (valid)
   {
-    NumberCP = NumberOfPanels + NumberOfWakes;
-    ControlPoint = new Vector[NumberCP];
-    normal = new Vector[NumberCP];
-    BC = new boundaryConditionType[NumberCP];
+    InnerControlPoint = new Vector[NumberOfPanels];
+    normal = new Vector[NumberOfPanels];
+    BC = new boundaryConditionType[NumberOfPanels];
     // geometry setup of the boundary conditions
     // collect control points and normal directions
-    int indexCP=0;
     for (int icp=0; icp<NumberOfPanels; icp++)
     {
       FlatPanel *p = mesh->at(icp);
       // we use control points displaced to the inside of the panel
-      ControlPoint[indexCP] = p->panelCenter() + p->panelNormal()*0.0001;
-      normal[indexCP] = p->panelNormal();
-      BC[indexCP] = PerturbationPotentialBC;
-      indexCP++;
-    };
-    for (int iw=0; iw<NumberOfWakes; iw++)
-    {
-      WakeStripe* wk = wake->at(iw);
-      ControlPoint[indexCP] = wk->wakeCP();
-      normal[indexCP] = wk->wakeNormal();
-      BC[indexCP] = NormalVelocityBC;
-      indexCP++;
+      InnerControlPoint[icp] = p->panelCenter() - p->panelNormal()*0.0001;
+      normal[icp] = p->panelNormal();
+      BC[icp] = PerturbationPotentialBC;
     };
     Globals::MainTextDisplay->append(QString("\nPaneling done.\n"));
-    Globals::MainTextDisplay->append(QString("in total %1 free parameters.\n").arg(NumberCP));
+    Globals::MainTextDisplay->append(QString("in total %1 free parameters.\n").arg(NumberOfPanels));
   } else {
     NumberOfPanels = 0;
     NumberOfWakes = 0;
@@ -347,6 +359,8 @@ SourceDoubletModel::SourceDoubletModel(Model *geometrymodel)
     varType->clear();
     wakelines->clear();
     wake->clear();
+    wakeParentPositive->clear();
+    wakeParentNegative->clear();
     Globals::MainTextDisplay->append(QString("\nPaneling failed.\n"));
   };
 }
@@ -365,11 +379,13 @@ SourceDoubletModel::~SourceDoubletModel()
   for (int i=0; i<NumberOfFilaments; i++)
     delete wakelines->at(i);
   delete wakelines;
+  delete wakeParentPositive;
+  delete wakeParentNegative;
   // printf("delete filaments ok.\n");
   // free all matrices and vectors belonging to the solution
   if (valid==TRUE)
   {
-    delete[] ControlPoint;
+    delete[] InnerControlPoint;
     delete[] normal;
     delete[] BC;
   };
@@ -377,6 +393,7 @@ SourceDoubletModel::~SourceDoubletModel()
   {
     delete[] sigSolution;
     delete[] muSolution;
+    delete[] muWake;
     delete[] vSolution;
     delete[] cpSolution;
     delete[] phiSolution;
@@ -493,6 +510,8 @@ int SourceDoubletModel::createSegmentModel(int wingno, GeometrySegment *segment)
     double stripechord =
       ((double)(nstripes-stripe)-0.5)/(double)nstripes*leftStationChord +
       ((double)stripe+0.5)/(double)nstripes*rightStationChord;
+    // the trailing edge top panel is the next one to be appended to the mesh
+    int iTopTE = mesh->count();
     // now generate some panels
     for (int i=0; i<2*nchord; i++)
     {
@@ -506,6 +525,8 @@ int SourceDoubletModel::createSegmentModel(int wingno, GeometrySegment *segment)
       NumberOfPanels++;
       npan++;
     };
+    // the trailing edge bottom panel is the last one appended to the mesh
+    int iBottomTE = mesh->count()-1;
     // create trailing wake
     Vector start = leftSection->pointVec(0);
     Vector direction = leftSection->wakeDirection();
@@ -550,7 +571,10 @@ int SourceDoubletModel::createSegmentModel(int wingno, GeometrySegment *segment)
     wk->setWingSpanPos(stripespan);
     wk->setWingChord(stripechord);
     wake->append(wk);
+    wakeParentPositive->append(iTopTE);
+    wakeParentNegative->append(iBottomTE);
     NumberOfWakes++;
+    printf("wake #%d : top=%d  bottom=%d\n",wake->count(),iTopTE,iBottomTE);
   };
   // clean up
   delete leftSection;
@@ -859,7 +883,9 @@ void SourceDoubletModel::runModelAOA(double aoa)
   double *M;		// influence matrix
   double *w;		// normal component of induced velocity
   double *perturbation;	// perturbation potential
-  // check preconditions
+  
+  printf("SourceDoubletModel : called.\n");
+  
   if (!valid) return;
 
   Globals::MainTextDisplay->append(
@@ -874,42 +900,51 @@ void SourceDoubletModel::runModelAOA(double aoa)
 
   vInfinity = Vector(cos(M_PI/180.0*aoa), 0.0, sin(M_PI/180.0*aoa));
 
+  printf("SourceDoubletModel : start OK.\n");
+
   if (validSolution)
   {
     delete[] sigSolution;
     delete[] muSolution;
+    delete[] muWake;
     delete[] vSolution;
     delete[] cpSolution;
     delete[] phiSolution;
     delete[] sourceInducedVelocity;
     delete[] doubletInducedVelocity;
+    delete[] wakeInducedVelocity;
     delete[] sourceInducedPotential;
     delete[] doubletInducedPotential;
+    delete[] wakeInducedPotential;
     validSolution = FALSE;
   };
   sigSolution = new double[NumberOfPanels];
-  muSolution = new double[NumberCP];
-  vSolution = new Vector[NumberCP];
-  cpSolution = new double[NumberCP];
-  // the potential is only computed for the surface control points
+  muSolution = new double[NumberOfPanels];
+  muWake = new double[NumberOfWakes];
+  vSolution = new Vector[NumberOfPanels];
+  cpSolution = new double[NumberOfPanels];
   phiSolution = new double[NumberOfPanels];
-  // only the solid boundary panels have a source strength
-  // velocities are computed for all panels
-  // the perturbation potential is only computed for the solid boundary panels
-  sourceInducedVelocity = new Vector[NumberOfPanels*NumberCP];
+  // Only the solid boundary panels have a source strength.
+  // All panels and wakes have a doublet strength.
+  // Velocities are computed for all panels.
+  // The perturbation potential is only computed for the solid boundary panels.
+  sourceInducedVelocity = new Vector[NumberOfPanels*NumberOfPanels];
+  doubletInducedVelocity = new Vector[NumberOfPanels*NumberOfPanels];
+  wakeInducedVelocity = new Vector[NumberOfPanels*NumberOfWakes];
   sourceInducedPotential = new double[NumberOfPanels*NumberOfPanels];
-  // all panels and wakes have a doublet strength
-  doubletInducedVelocity = new Vector[NumberCP*NumberCP];
-  doubletInducedPotential = new double[NumberCP*NumberOfPanels];
+  doubletInducedPotential = new double[NumberOfPanels*NumberOfPanels];
+  wakeInducedPotential = new double[NumberOfPanels*NumberOfWakes];
   validSolution = TRUE;
 
+  printf("SourceDoubletModel : alloc memory OK.\n");
+  
   // First we compute the aerodynamic influence coefficients (AIC)
   // for all perturbation singularities at all control points
   Globals::MainStatusBar->showMessage(QString("setting up influence matrix ..."));
   Globals::MainStatusBar->repaint();
   // show a progress bar
   QProgressDialog progress("computing influence matrix ...", "Abort",
-			   0, NumberCP, Globals::MainTextDisplay);
+			   0, NumberOfPanels+NumberOfWakes, Globals::MainTextDisplay);
   progress.setWindowModality(Qt::WindowModal);
   progress.setMinimumDuration(0);
   progress.show();
@@ -917,7 +952,7 @@ void SourceDoubletModel::runModelAOA(double aoa)
   // The inflence matrices are stored in a row-major order.
   // The rows contain the coefficients for all panels to a single control point.
   // The computation is done in a column-major order.
-  // The panels index [ipan/iw] is the column number and the outer loop index.
+  // The panels index [ipan] is the column number and the outer loop index.
   // This loop can be parallelized.
   // The control point index [icp] is the row number and the inner loop index.
   // The inner loop cannot be parallelized, because the coefficient computation
@@ -926,16 +961,17 @@ void SourceDoubletModel::runModelAOA(double aoa)
   bool abort = FALSE;
   #pragma omp parallel private(cp,p,wk,phi) shared(counter,abort)
   { // begin parallel domain
+  
     #pragma omp single
     {
-      printf("computing on %d cores\n",omp_get_num_procs());
       Globals::MainTextDisplay->append(
         QString("computing on %1 cores").arg(omp_get_num_procs()));
-      printf("computing with %d threads\n",omp_get_num_threads());
       Globals::MainTextDisplay->append(
         QString("computing with %1 threads").arg(omp_get_num_threads()));
     };
+    
     // loop over all panels (column-wise loop)
+    // the panels are the source of the perturbation
     #pragma omp for
     for (int ipan=0; ipan<NumberOfPanels; ipan++)
     {
@@ -945,31 +981,28 @@ void SourceDoubletModel::runModelAOA(double aoa)
       {
 	// set a pointer to the panel being analyzed
 	p = mesh->at(ipan);
-        // debugging output
-        printf(" thread No. %d : panel %d\n",omp_get_thread_num(),ipan);
+	// inner loop :
 	// compute the influence at all control points
-	for (int icp=0; icp<NumberCP; icp++)
+	for (int icp=0; icp<NumberOfPanels; icp++)
 	{
-	  cp = ControlPoint[icp];
+	  // we use control points displaced to the inside of the panel for potentials
+	  cp = InnerControlPoint[icp];
 	  p->ComputePIC(cp);
-	  sourceInducedVelocity[icp*NumberOfPanels+ipan] = p->ConstSourceVelocity();
-	  doubletInducedVelocity[icp*NumberCP+ipan] = p->ConstDoubletVelocity();
+	  // induced velocities are defined for the outside
+	  // we have to invert self induced velocities for source panels
+	  if (icp==ipan)
+	    sourceInducedVelocity[icp*NumberOfPanels+ipan] = -p->ConstSourceVelocity();
+	  else
+	    sourceInducedVelocity[icp*NumberOfPanels+ipan] = p->ConstSourceVelocity();
+	  doubletInducedVelocity[icp*NumberOfPanels+ipan] = p->ConstDoubletVelocity();
 	  // induced potentials are computed for the surface control points only
-	  if (icp<NumberOfPanels)
-	  {
-	    sourceInducedPotential[icp*NumberOfPanels+ipan] = p->ConstSourcePotential();
-	    phi = p->ConstDoubletPotential();
-	    if (icp==ipan)
-	      // The self induced potential is computed for the outside control point.
-	      // At the inside of the panel it has the opposite sign.
-	      doubletInducedPotential[icp*NumberCP+ipan] = -phi;
-	    else
-	      doubletInducedPotential[icp*NumberCP+ipan] = phi;
-	  };
+	  sourceInducedPotential[icp*NumberOfPanels+ipan] = p->ConstSourcePotential();
+	  doubletInducedPotential[icp*NumberOfPanels+ipan] = p->ConstDoubletPotential();
 	};
       }
       else
       {
+	// handle abort
 	ipan=NumberOfPanels;
       };
       // all threads increment the counter when they have finished one loop
@@ -988,8 +1021,8 @@ void SourceDoubletModel::runModelAOA(double aoa)
 	#pragma omp flush(abort)
       };
     }; // end of panel loop
-    // Now we append the influence of the wakes to the same control points.
-    // At the end the matrix M has (NumberOfPanels+NumberOfWakes) columns.
+    
+    // Now we compute the influence of the wakes to the same control points.
     // loop over all wakes (column-wise loop continued)
     #pragma omp for
     for (int iw=0; iw<NumberOfWakes; iw++)
@@ -1001,17 +1034,16 @@ void SourceDoubletModel::runModelAOA(double aoa)
 	// set a pointer to the wake being analyzed
 	wk = wake->at(iw);
 	// compute the influence at all control points
-	for (int icp=0; icp<NumberCP; icp++)
+	for (int icp=0; icp<NumberOfPanels; icp++)
 	{
-	  cp = ControlPoint[icp];
-	  doubletInducedVelocity[icp*NumberCP+NumberOfPanels+iw] = wk->inducedVelocity(cp);
-	  // induced potentials are computed for the surface control points only
-	  if (icp<NumberOfPanels)
-	    doubletInducedPotential[icp*NumberCP+NumberOfPanels+iw] = wk->inducedPotential(cp);
+	  cp = InnerControlPoint[icp];
+	  wakeInducedVelocity[icp*NumberOfWakes+iw] = wk->inducedVelocity(cp);
+	  wakeInducedPotential[icp*NumberOfWakes+iw] = wk->inducedPotential(cp);
 	};
       }
       else
       {
+	// handle abort
 	iw=NumberOfWakes;
       };
       // all threads increment the counter when they have finished one loop
@@ -1037,17 +1069,22 @@ void SourceDoubletModel::runModelAOA(double aoa)
     Globals::MainTextDisplay->append(QString("computation aborted\n"));
     delete[] sigSolution;
     delete[] muSolution;
+    delete[] muWake;
     delete[] vSolution;
     delete[] cpSolution;
     delete[] phiSolution;
     delete[] sourceInducedVelocity;
     delete[] doubletInducedVelocity;
+    delete[] wakeInducedVelocity;
     delete[] sourceInducedPotential;
     delete[] doubletInducedPotential;
+    delete[] wakeInducedPotential;
     validSolution = FALSE;
     return;
   };
 
+  printf("SourceDoubletModel : AIC computation OK.\n");
+  
   Globals::MainStatusBar->showMessage(QString("setting up system of equations ..."));
   Globals::MainStatusBar->repaint();
   progress.reset();
@@ -1071,73 +1108,96 @@ void SourceDoubletModel::runModelAOA(double aoa)
   // The rows contain the coefficients for all panels to a single control point.
   // This way, the control point index is the row number and the outer loop index.
   // The panels index is the column number and the inner loop index.
-  M = new double[NumberCP*NumberCP];
-  w = new double[NumberCP];
-  perturbation = new double[NumberCP];  // perturbation potential
+  M = new double[NumberOfPanels*NumberOfPanels];
+  w = new double[NumberOfPanels];
+  perturbation = new double[NumberOfPanels];  // perturbation potential
   // compute the induction of all panels at the given control points
-  for (int icp=0; icp<NumberCP; icp++)
+  for (int icp=0; icp<NumberOfPanels; icp++)
   {
     progress.setValue(icp);
     n = normal[icp];
-    // solid boundaries and wake CPs have different boundary conditions
-    if (icp<NumberOfPanels)
     // for the solid boundary panels we impose the
     // zero internal perturbation potential boundary condition
+    perturbation[icp] = 0.0;
+    for (int ipan=0; ipan<NumberOfPanels; ipan++)
     {
-      perturbation[icp] = 0.0;
-      for (int ipan=0; ipan<NumberOfPanels; ipan++)
-      {
-	// the sources add to the known perturbations
-	perturbation[icp] += -sourceInducedPotential[icp*NumberOfPanels+ipan] * sigSolution[ipan];
-	// the doublets have to be solved for
-	M[icp*NumberCP+ipan] = doubletInducedPotential[icp*NumberCP+ipan];
-      };
-      for (int iw=0; iw<NumberOfWakes; iw++)
-      {
-	// wakes have no source terms
-	// the doublets have to be solved for
-	M[icp*NumberCP+NumberOfPanels+iw] = doubletInducedPotential[icp*NumberCP+NumberOfPanels+iw];
-      };
-    }
-    else
-    // for the wake control points we impose the
-    // zero normal velocity boundary condition
+      // the sources add to the known perturbations
+      perturbation[icp] += -sourceInducedPotential[icp*NumberOfPanels+ipan] * sigSolution[ipan];
+      // the doublets have to be solved for
+      M[icp*NumberOfPanels+ipan] = doubletInducedPotential[icp*NumberOfPanels+ipan];
+    };
+    for (int iw=0; iw<NumberOfWakes; iw++)
     {
-      // the perturbations contain the normal components of the free-stream velocity
-      // plus the contribution of the source terms.
-      perturbation[icp] = -dot(vInfinity,n);
-      for (int ipan=0; ipan<NumberOfPanels; ipan++)
-      {
-	// the sources add to the known perturbations
-	perturbation[icp] += -dot(sourceInducedVelocity[icp*NumberOfPanels+ipan],n) * sigSolution[ipan];
-	// the doublets have to be solved for (by velocity BC)
-	M[icp*NumberCP+ipan] = dot(doubletInducedVelocity[icp*NumberCP+ipan],n);
-      };
-      for (int iw=0; iw<NumberOfWakes; iw++)
-      {
-	// wakes have no source terms
-	// the doublets have to be solved for (by velocity BC)
-	M[icp*NumberCP+NumberOfPanels+iw] = dot(doubletInducedVelocity[icp*NumberCP+NumberOfPanels+iw],n);
-      };
+      // the influence of the wakes is attributed to the parent panels
+      // from which the wake is emanating
+      // as a disturbance created by them
+      int iTopTE = wakeParentPositive->at(iw);
+      int iBottomTE = wakeParentNegative->at(iw);
+      M[icp*NumberOfPanels+iTopTE] += wakeInducedPotential[icp*NumberOfWakes+iw];
+      M[icp*NumberOfPanels+iBottomTE] -= wakeInducedPotential[icp*NumberOfWakes+iw];
     };
   };
 
+  printf("matrix setup OK.\n\n");
+  
+  /*
+  printf("SIP:\n");
+  for (int icp=0; icp<NumberOfPanels; icp++)
+  {
+    for (int ipan=0; ipan<NumberOfPanels; ipan++)
+      printf("  %f",sourceInducedPotential[icp*NumberOfPanels+ipan]);
+    printf("\n");  
+  };
+  printf("\n");  
+  
+  printf("DIP:\n");
+  for (int icp=0; icp<NumberOfPanels; icp++)
+  {
+    for (int ipan=0; ipan<NumberOfPanels; ipan++)
+      printf("  %f",doubletInducedPotential[icp*NumberOfPanels+ipan]);
+    printf("\n");  
+  };
+  printf("\n");  
+  
+  printf("WIP:\n");
+  for (int icp=0; icp<NumberOfPanels; icp++)
+  {
+    for (int iw=0; iw<NumberOfWakes; iw++)
+      printf("  %f",wakeInducedPotential[icp*NumberOfWakes+iw]);
+    printf("\n");  
+  };
+  printf("\n");  
+  
+  printf("M:\n");
+  for (int icp=0; icp<NumberOfPanels; icp++)
+  {
+    for (int ipan=0; ipan<NumberOfPanels; ipan++)
+      printf("  %f",M[icp*NumberOfPanels+ipan]);
+    printf("\n");  
+  };
+  printf("\n");  
+  
+  printf("perturbation potential:\n");
+  for (int icp=0; icp<NumberOfPanels; icp++)
+    printf("  %f",perturbation[icp]);
+  printf("\n");  
+  */
+  
   // now we solve the system of linear equations
   Globals::MainStatusBar->showMessage(QString("solving system of equations ..."));
   Globals::MainStatusBar->repaint();
-
   // use OpenBLAS for solving the linear system of equations
   int typepar = openblas_get_parallel();
   if (typepar==0) Globals::MainTextDisplay->append(QString("OpenBLAS type 0: sequential"));
   if (typepar==1) Globals::MainTextDisplay->append(QString("OpenBLAS type 1: pthread"));
   if (typepar==2) Globals::MainTextDisplay->append(QString("OpenBLAS type 2: OpenMP"));
-  int *ipiv = (int*)malloc(sizeof(int)*NumberCP);
+  int *ipiv = (int*)malloc(sizeof(int)*NumberOfPanels);
   int info = LAPACKE_dgesv(
       LAPACK_ROW_MAJOR,		// storage ordering of the matrix
-      NumberCP,			// LDA : the leading array dimension = number of rows
+      NumberOfPanels,		// LDA : the leading array dimension = number of rows
       1,			// number of right-hand side vectors
       M,			// the matrix
-      NumberCP,			// LDB : the leading dimension of the RHS vectors
+      NumberOfPanels,		// LDB : the leading dimension of the RHS vectors
       ipiv,			// workspace for the pivot vector
       perturbation,		// right-hand side matrix
       1);			// number of right-hand side vectors
@@ -1149,42 +1209,62 @@ void SourceDoubletModel::runModelAOA(double aoa)
   for (int ipan=0; ipan<NumberOfPanels; ipan++)
     muSolution[ipan]=perturbation[ipan];
   for (int iw=0; iw<NumberOfWakes; iw++)
-    muSolution[NumberOfPanels+iw]=perturbation[NumberOfPanels+iw];
+    muWake[iw]=muSolution[wakeParentPositive->at(iw)]-muSolution[wakeParentNegative->at(iw)];
 
+  printf("OpenBLAS OK.\n\n");
+  
+  printf("sigma solution:\n");
+  for (int ipan=0; ipan<NumberOfPanels; ipan++)
+    printf("  %f",sigSolution[ipan]);
+  printf("\n\n");  
+  
+  printf("mu solution:\n");
+  for (int ipan=0; ipan<NumberOfPanels; ipan++)
+    printf("  %f",muSolution[ipan]);
+  printf("\n\n");  
+  
+  printf("mu wake:\n");
+  for (int iw=0; iw<NumberOfWakes; iw++)
+    printf("  %f",muWake[iw]);
+  printf("\n\n");  
+  
   // compute the resulting flow velocities and perturbation potentials
   Vector *SIV = sourceInducedVelocity;
   Vector *DIV = doubletInducedVelocity;
-  double *SIP = sourceInducedPotential;
-  double *DIP = doubletInducedPotential;
-  SIV = sourceInducedVelocity;
-  DIV = doubletInducedVelocity;
-  for (int icp=0; icp<NumberCP; icp++)
+  Vector *WIV = wakeInducedVelocity;
+  for (int icp=0; icp<NumberOfPanels; icp++)
   {
     n = normal[icp];
     vind = vInfinity;
     for (int ipan=0; ipan<NumberOfPanels; ipan++)
       vind += *SIV++ * sigSolution[ipan];
-    for (int ipan=0; ipan<NumberCP; ipan++) // this also includes the wakes
+    for (int ipan=0; ipan<NumberOfPanels; ipan++)
       vind += *DIV++ * muSolution[ipan];
+    for (int iw=0; iw<NumberOfWakes; iw++)
+      vind += *WIV++ * muWake[iw];
     vSolution[icp] = vind;
     // we also check the normal velocity component
     w[icp] = fabs(dot(vind,n));
     // compute the pressure coefficient
     cpSolution[icp] = 1-vind.sqnorm();
   };
-  SIP = sourceInducedPotential;
-  DIP = doubletInducedPotential;
+  double *SIP = sourceInducedPotential;
+  double *DIP = doubletInducedPotential;
+  double *WIP = wakeInducedPotential;
   for (int icp=0; icp<NumberOfPanels; icp++)
   {
     phi = 0.0;
     for (int ipan=0; ipan<NumberOfPanels; ipan++)
       phi += *SIP++ * sigSolution[ipan];
-    for (int ipan=0; ipan<NumberCP; ipan++) // this also includes the wakes
+    for (int ipan=0; ipan<NumberOfPanels; ipan++)
       phi += *DIP++ * muSolution[ipan];
-    // induced perturbation potential
+    for (int iw=0; iw<NumberOfWakes; iw++)
+      phi += *WIP++ * muWake[iw];
     phiSolution[icp] = phi;
   };
-
+  
+  printf("solution OK.\n");
+  
   // check extrema of the solution vectors
   double wMax = w[0];
   muMin = muSolution[0];
@@ -1227,6 +1307,115 @@ void SourceDoubletModel::runModelAOA(double aoa)
     QString("pressure coefficient cp ranges %1 ... %2").arg(cpMin).arg(cpMax));
   Globals::MainTextDisplay->update();
 
+  printf("ready OK.\n");
+  
+  // debugging code
+  /*
+  Globals::MainTextDisplay->append(QString("\n*** debugging code ***\n"));
+  int i1test = 320;
+  int i2test = 359;
+  int iwtest = 8;
+  Vector pt, vi;
+  QString s;
+  
+  FlatPanel *p1 = mesh->at(i1test);
+  Vector p1cp = ControlPoint[i1test];
+  Vector p1n = p1->panelNormal();
+  s = QString("panel %1 : ").arg(i1test);
+  s += QString("\tmu=%1   \tsigma=%2   ").arg(muSolution[i1test]).arg(sigSolution[i1test]);
+  s += QString("\tcp=(%1   %2   %3  )").arg(p1cp.x,8,'f',2).arg(p1cp.y,8,'f',2).arg(p1cp.z,8,'f',2);
+  s += QString("\tn=(%1   %2   %3  )").arg(p1n.x,8,'f',2).arg(p1n.y,8,'f',2).arg(p1n.z,8,'f',2);
+  Globals::MainTextDisplay->append(s);
+  pt = p1->panelPoint(0);
+  s = QString("\t(%1   %2   %3  )").arg(pt.x,8,'f',2).arg(pt.y,8,'f',2).arg(pt.z,8,'f',2);
+  pt = p1->panelPoint(1);
+  s += QString("\t(%1   %2   %3  )").arg(pt.x,8,'f',2).arg(pt.y,8,'f',2).arg(pt.z,8,'f',2);
+  Globals::MainTextDisplay->append(s);
+  pt = p1->panelPoint(2);
+  s = QString("\t(%1   %2   %3  )").arg(pt.x,8,'f',2).arg(pt.y,8,'f',2).arg(pt.z,8,'f',2);
+  pt = p1->panelPoint(3);
+  s += QString("\t(%1   %2   %3  )").arg(pt.x,8,'f',2).arg(pt.y,8,'f',2).arg(pt.z,8,'f',2);
+  Globals::MainTextDisplay->append(s);
+
+  FlatPanel *p2 = mesh->at(i2test);
+  Vector p2cp = ControlPoint[i2test];
+  Vector p2n = p2->panelNormal();
+  s = QString("panel %1 : ").arg(i2test);
+  s += QString("\tmu=%1   \tsigma=%2   ").arg(muSolution[i2test]).arg(sigSolution[i2test]);
+  s += QString("\tcp=(%1   %2   %3  )").arg(p2cp.x,8,'f',2).arg(p2cp.y,8,'f',2).arg(p2cp.z,8,'f',2);
+  s += QString("\tn=(%1   %2   %3  )").arg(p2n.x,8,'f',2).arg(p2n.y,8,'f',2).arg(p2n.z,8,'f',2);
+  Globals::MainTextDisplay->append(s);
+  pt = p2->panelPoint(0);
+  s = QString("\t(%1   %2   %3  )").arg(pt.x,8,'f',2).arg(pt.y,8,'f',2).arg(pt.z,8,'f',2);
+  pt = p2->panelPoint(1);
+  s += QString("\t(%1   %2   %3  )").arg(pt.x,8,'f',2).arg(pt.y,8,'f',2).arg(pt.z,8,'f',2);
+  Globals::MainTextDisplay->append(s);
+  pt = p2->panelPoint(2);
+  s = QString("\t(%1   %2   %3  )").arg(pt.x,8,'f',2).arg(pt.y,8,'f',2).arg(pt.z,8,'f',2);
+  pt = p2->panelPoint(3);
+  s += QString("\t(%1   %2   %3  )").arg(pt.x,8,'f',2).arg(pt.y,8,'f',2).arg(pt.z,8,'f',2);
+  Globals::MainTextDisplay->append(s);
+  
+  wk = wake->at(iwtest);
+  s = QString("wake %1 : ").arg(iwtest);
+  Vector wcp = ControlPoint[NumberOfPanels+iwtest];
+  Vector wn = wk->wakeNormal();
+  s += QString("\tmu=%1   ").arg(muSolution[NumberOfPanels+iwtest]);
+  s += QString("\tcp=(%1   %2   %3  )").arg(wcp.x,8,'f',2).arg(wcp.y,8,'f',2).arg(wcp.z,8,'f',2);
+  s += QString("\tn=(%1   %2   %3  )").arg(wn.x,8,'f',2).arg(wn.y,8,'f',2).arg(wn.z,8,'f',2);
+  Globals::MainTextDisplay->append(s);
+  
+  Globals::MainTextDisplay->append(QString(""));
+
+  s = QString("  1 -> 2 : ");
+  vi = doubletInducedVelocity[i2test*NumberCP+i1test];
+  s += QString("\tDIV=(%1  %2  %3)").arg(vi.x,9,'f',6).arg(vi.y,9,'f',6).arg(vi.z,9,'f',6);
+  Globals::MainTextDisplay->append(s);
+  p1->ComputePIC(p2cp);
+  vi = p1->ConstDoubletVelocity();
+  s = QString("\t\tDIV(panel) = (%1  %2  %3)").arg(vi.x,9,'f',6).arg(vi.y,9,'f',6).arg(vi.z,9,'f',6);
+  Globals::MainTextDisplay->append(s);
+
+  s = QString("  2 -> 1 : ");
+  vi = doubletInducedVelocity[i1test*NumberCP+i2test];
+  s += QString("\tDIV=(%1  %2  %3)").arg(vi.x,9,'f',6).arg(vi.y,9,'f',6).arg(vi.z,9,'f',6);
+  Globals::MainTextDisplay->append(s);
+  p2->ComputePIC(p1cp);
+  vi = p2->ConstDoubletVelocity();
+  s = QString("\t\tDIV(panel) = (%1  %2  %3)").arg(vi.x,9,'f',6).arg(vi.y,9,'f',6).arg(vi.z,9,'f',6);
+  Globals::MainTextDisplay->append(s);
+
+  s = QString("  1 -> 3 : ");
+  vi = doubletInducedVelocity[(NumberOfPanels+iwtest)*NumberCP+i1test];
+  s += QString("\tDIV=(%1  %2  %3)").arg(vi.x,9,'f',6).arg(vi.y,9,'f',6).arg(vi.z,9,'f',6);
+  Globals::MainTextDisplay->append(s);
+  p1->ComputePIC(wcp);
+  vi = p1->ConstDoubletVelocity();
+  s = QString("\t\tDIV(panel) = (%1  %2  %3)").arg(vi.x,9,'f',6).arg(vi.y,9,'f',6).arg(vi.z,9,'f',6);
+  Globals::MainTextDisplay->append(s);
+
+  s = QString("  2 -> 3 : ");
+  vi = doubletInducedVelocity[(NumberOfPanels+iwtest)*NumberCP+i2test];
+  s += QString("\tDIV=(%1  %2  %3)").arg(vi.x,9,'f',6).arg(vi.y,9,'f',6).arg(vi.z,9,'f',6);
+  Globals::MainTextDisplay->append(s);
+  p2->ComputePIC(wcp);
+  vi = p2->ConstDoubletVelocity();
+  s = QString("\t\tDIV(panel) = (%1  %2  %3)").arg(vi.x,9,'f',6).arg(vi.y,9,'f',6).arg(vi.z,9,'f',6);
+  Globals::MainTextDisplay->append(s);
+
+  s = QString("  3 -> 1 : ");
+  vi = doubletInducedVelocity[i1test*NumberCP+NumberOfPanels+iwtest];
+  s += QString("\tDIV=(%1  %2  %3)").arg(vi.x,9,'f',6).arg(vi.y,9,'f',6).arg(vi.z,9,'f',6);
+  Globals::MainTextDisplay->append(s);
+
+  s = QString("  3 -> 2 : ");
+  vi = doubletInducedVelocity[i2test*NumberCP+NumberOfPanels+iwtest];
+  s += QString("\tDIV=(%1  %2  %3)").arg(vi.x,9,'f',6).arg(vi.y,9,'f',6).arg(vi.z,9,'f',6);
+  Globals::MainTextDisplay->append(s);
+
+  */
+  printf("SourceDoubletModel : return.\n");
+  
 }
 
 void SourceDoubletModel::flowField(int np, Vector *x, Vector *v)
@@ -1257,7 +1446,7 @@ Vector SourceDoubletModel::flowPoint(Vector x)
     {
       // set a pointer to the wake being analyzed
       WakeStripe *wk = wake->at(iw);
-      v += wk->inducedVelocity(x) * muSolution[NumberOfPanels+iw];
+      v += wk->inducedVelocity(x) * muWake[iw];
     };
   }
   return v;
@@ -1271,32 +1460,6 @@ void SourceDoubletModel::relaxWake()
   }
   if (validSolution)
   {
-    Globals::MainTextDisplay->append(QString("\nparameters of modeled flow :\n"));
-    QFont previous = Globals::MainTextDisplay->currentFont();
-    QFont actual = QFont(previous);
-    actual.setStyleHint(QFont::TypeWriter);
-    actual.setFixedPitch(TRUE);
-    actual.setKerning(FALSE);
-    actual.setPointSize(8);
-    Globals::MainTextDisplay->setCurrentFont(actual);
-    Globals::MainTextDisplay->setTabStopWidth(40);
-    Globals::MainTextDisplay->append(QString("       \t    doublet  \t              residual    \t    \tvelocity"));
-    Globals::MainTextDisplay->append(QString("       \t    strength \t              normal"));
-    Globals::MainTextDisplay->append(QString("       \t             \t              velocity"));
-    Globals::MainTextDisplay->append(QString("----------------------------------------------------------------------------------------------------------------------------------------"));
-    for (int icp=0; icp<NumberCP; icp++)
-    {
-      Vector n = normal[icp];
-      Vector x = ControlPoint[icp];
-      Vector v = flowPoint(x);
-      Globals::MainTextDisplay->append(QString("%1 :\t  %2     \t  %3          \t( %4, %5, %6  )")
-	.arg(icp,4)
-	.arg(muSolution[icp],12,'e',3)
-	.arg(dot(v,n),12,'e',3)
-	.arg(v.x,8,'f',4).arg(v.y,8,'f',4).arg(v.z,8,'f',4));
-    };
-    Globals::MainTextDisplay->setCurrentFont(previous);
-    Globals::MainTextDisplay->append(QString("\n"));
   }
 }
 
@@ -1402,7 +1565,7 @@ void SourceDoubletModel::analyzeWake()
       Trefftz_xc[iw] = (Trefftz_x1[iw]+Trefftz_x2[iw])*0.5;
       // get the circulation strength of the associated horse-shoe vortex
       // gamma units are m/s mm
-      Trefftz_gamma[iw] = -muSolution[NumberOfPanels+iw];
+      Trefftz_gamma[iw] = -muWake[iw];
     };
     // compute total induced velocities at all center points
     // i.e. (half) the induction of the two-ends infinite vortex streamlines
@@ -1546,26 +1709,18 @@ void SourceDoubletModel::printSolution()
     Globals::MainTextDisplay->append(QString("  \t  pressure  \t  strength    \t  strength    \t  normal      \t  perturbation\t    velocity"));
     Globals::MainTextDisplay->append(QString("  \t  (cp)      \t              \t              \t  velocity    \t  potential   \t    "));
     Globals::MainTextDisplay->append(QString("--------------------------------------------------------------------------------------------------------------------------------"));
-    for (int icp=0; icp<NumberCP; icp++)
+    for (int icp=0; icp<NumberOfPanels; icp++)
     {
       Vector n = normal[icp];
       Vector v = vSolution[icp];
-      if (icp<NumberOfPanels)
-	Globals::MainTextDisplay->append(QString("%1 :\t%2\t%3\t%4\t%5\t%6\t( %7 %8 %9  )")
-	  .arg(icp,4)
-	  .arg(cpSolution[icp],10,'f',5)
-	  .arg(sigSolution[icp],12,'e',3)
-	  .arg(muSolution[icp],12,'e',3)
-	  .arg(dot(v,n),12,'e',3)
-	  .arg(phiSolution[icp],12,'e',3)
-	  .arg(v.x,8,'f',4).arg(v.y,8,'f',4).arg(v.z,8,'f',4));
-      else
-	Globals::MainTextDisplay->append(QString("%1 :\t%2\t          \t%4\t%5\t        \t( %7 %8 %9  )")
-	  .arg(icp,4)
-	  .arg(cpSolution[icp],10,'f',5)
-	  .arg(muSolution[icp],12,'e',3)
-	  .arg(dot(v,n),12,'e',3)
-	  .arg(v.x,8,'f',4).arg(v.y,8,'f',4).arg(v.z,8,'f',4));
+      Globals::MainTextDisplay->append(QString("%1 :\t%2\t%3\t%4\t%5\t%6\t( %7 %8 %9  )")
+	.arg(icp,4)
+	.arg(cpSolution[icp],10,'f',5)
+	.arg(sigSolution[icp],12,'e',3)
+	.arg(muSolution[icp],12,'e',3)
+	.arg(dot(v,n),12,'e',3)
+	.arg(phiSolution[icp],12,'e',3)
+	.arg(v.x,8,'f',4).arg(v.y,8,'f',4).arg(v.z,8,'f',4));
     };
     Globals::MainTextDisplay->setCurrentFont(previous);
     Globals::MainTextDisplay->append(QString("\n"));
@@ -1594,7 +1749,7 @@ void SourceDoubletModel::printCirculation()
 	.arg(iw,4)
 	.arg(wk->getWingIndex(),10)
 	.arg(wk->getWingSpanPos(),12)
-	.arg(muSolution[NumberOfPanels+iw],12,'e',3)
+	.arg(muWake[iw],12,'e',3)
 	.arg(Trefftz_cl[iw],8,'f',4)
 	.arg(Trefftz_cd[iw],10,'f',6)
 	.arg(Trefftz_vi[iw].x,8,'f',4).arg(Trefftz_vi[iw].y,8,'f',4).arg(Trefftz_vi[iw].z,8,'f',4)  );
@@ -1644,7 +1799,7 @@ void SourceDoubletModel::sourceGammaPlot(vtkChartXY *chart)
 	{
 	  double s = wk->getWingSpanPos();
 	  table->SetValue(it, 0, s);
-	  double g = -muSolution[NumberOfPanels+iw];
+	  double g = -muWake[iw];
 	  if (g<gMin) gMin=g;
 	  if (g>gMax) gMax=g;
 	  table->SetValue(it, 1, g);
