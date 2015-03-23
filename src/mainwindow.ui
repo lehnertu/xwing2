@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1200</width>
+    <width>1405</width>
     <height>900</height>
    </rect>
   </property>
@@ -67,7 +67,7 @@
       </property>
       <property name="sizeIncrement">
        <size>
-        <width>2</width>
+        <width>3</width>
         <height>1</height>
        </size>
       </property>
@@ -146,7 +146,7 @@
            <x>10</x>
            <y>30</y>
            <width>411</width>
-           <height>227</height>
+           <height>234</height>
           </rect>
          </property>
          <layout class="QGridLayout" name="geometryStationValuesLayout" rowstretch="0,0,0,0,0,0,0,0,0" rowminimumheight="25,25,25,25,25,15,15,15,15" columnminimumwidth="50,60,60,50,80,40">
@@ -635,7 +635,7 @@
            <x>10</x>
            <y>30</y>
            <width>201</width>
-           <height>261</height>
+           <height>273</height>
           </rect>
          </property>
          <layout class="QGridLayout" name="gridLayout_3">
@@ -889,8 +889,8 @@
           <rect>
            <x>8</x>
            <y>30</y>
-           <width>341</width>
-           <height>256</height>
+           <width>342</width>
+           <height>262</height>
           </rect>
          </property>
          <layout class="QGridLayout" name="geometrySegmentValuesLayout" rowminimumheight="25,25,25,25,25,25,15,15,15,15">
@@ -1334,8 +1334,8 @@
          <rect>
           <x>20</x>
           <y>20</y>
-          <width>322</width>
-          <height>181</height>
+          <width>369</width>
+          <height>214</height>
          </rect>
         </property>
         <layout class="QGridLayout" name="gridLayout_2" columnstretch="2,0,0">
@@ -1584,8 +1584,8 @@
          <rect>
           <x>400</x>
           <y>20</y>
-          <width>268</width>
-          <height>84</height>
+          <width>288</width>
+          <height>114</height>
          </rect>
         </property>
         <layout class="QGridLayout" name="gridLayout_5">
@@ -1918,19 +1918,19 @@
       </property>
       <property name="minimumSize">
        <size>
-        <width>400</width>
+        <width>520</width>
         <height>300</height>
        </size>
       </property>
       <property name="sizeIncrement">
        <size>
-        <width>1</width>
+        <width>2</width>
         <height>1</height>
        </size>
       </property>
       <property name="baseSize">
        <size>
-        <width>300</width>
+        <width>550</width>
         <height>300</height>
        </size>
       </property>
@@ -1938,7 +1938,7 @@
        <enum>QTabWidget::North</enum>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>3</number>
       </property>
       <property name="usesScrollButtons">
        <bool>false</bool>
@@ -1966,13 +1966,18 @@
          <rect>
           <x>20</x>
           <y>20</y>
-          <width>351</width>
-          <height>223</height>
+          <width>469</width>
+          <height>266</height>
          </rect>
         </property>
         <layout class="QGridLayout" name="graphicsPanelingLayout">
          <item row="8" column="2">
           <widget class="QLabel" name="labelGraphicsFlowRenderRangeMin">
+           <property name="font">
+            <font>
+             <pointsize>10</pointsize>
+            </font>
+           </property>
            <property name="text">
             <string>min. value</string>
            </property>
@@ -2024,6 +2029,12 @@
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>25</height>
+            </size>
+           </property>
            <property name="text">
             <string>doublet strength</string>
            </property>
@@ -2037,6 +2048,12 @@
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>25</height>
+            </size>
+           </property>
            <property name="text">
             <string>source strength</string>
            </property>
@@ -2044,6 +2061,11 @@
          </item>
          <item row="5" column="2">
           <widget class="QLabel" name="labelGraphicsFlowRenderRangeMax">
+           <property name="font">
+            <font>
+             <pointsize>10</pointsize>
+            </font>
+           </property>
            <property name="text">
             <string>max. value</string>
            </property>
@@ -2079,6 +2101,12 @@
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>25</height>
+            </size>
+           </property>
            <property name="text">
             <string>surface pressure</string>
            </property>
@@ -2089,6 +2117,11 @@
          </item>
          <item row="6" column="2">
           <widget class="QLabel" name="labelGraphicsFlowRenderScaleMax">
+           <property name="font">
+            <font>
+             <pointsize>10</pointsize>
+            </font>
+           </property>
            <property name="text">
             <string>scale max.</string>
            </property>
@@ -2101,6 +2134,12 @@
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>25</height>
+            </size>
            </property>
            <property name="text">
             <string>show panel normals</string>
@@ -2115,6 +2154,12 @@
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>25</height>
+            </size>
+           </property>
            <property name="text">
             <string>show flow direction</string>
            </property>
@@ -2127,6 +2172,12 @@
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>25</height>
+            </size>
            </property>
            <property name="text">
             <string>wire frame</string>
@@ -2177,6 +2228,12 @@
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>25</height>
+            </size>
            </property>
            <property name="text">
             <string>show wake</string>
@@ -2247,6 +2304,11 @@
          </item>
          <item row="7" column="2">
           <widget class="QLabel" name="labelGraphicsFlowRenderScaleMin">
+           <property name="font">
+            <font>
+             <pointsize>10</pointsize>
+            </font>
+           </property>
            <property name="text">
             <string>scale min.</string>
            </property>
@@ -2266,7 +2328,7 @@
            <property name="minimumSize">
             <size>
              <width>60</width>
-             <height>25</height>
+             <height>30</height>
             </size>
            </property>
            <property name="baseSize">
@@ -2291,11 +2353,29 @@
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>25</height>
+            </size>
+           </property>
            <property name="text">
             <string>show panel lines</string>
            </property>
            <property name="checked">
             <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="2" alignment="Qt::AlignRight">
+          <widget class="QLabel" name="labelGraphicsFlowModel">
+           <property name="font">
+            <font>
+             <pointsize>10</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>model</string>
            </property>
           </widget>
          </item>
@@ -2311,8 +2391,8 @@
          <rect>
           <x>20</x>
           <y>20</y>
-          <width>411</width>
-          <height>223</height>
+          <width>471</width>
+          <height>244</height>
          </rect>
         </property>
         <layout class="QGridLayout" name="graphicsSectionPanelingLayout">
@@ -2323,6 +2403,12 @@
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>25</height>
+            </size>
            </property>
            <property name="text">
             <string>surface pressure</string>
@@ -2402,12 +2488,18 @@
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>25</height>
+            </size>
+           </property>
            <property name="text">
             <string>doublet strength</string>
            </property>
           </widget>
          </item>
-         <item row="0" column="3">
+         <item row="0" column="3" alignment="Qt::AlignLeft">
           <widget class="QPushButton" name="graphicsSectionSelectModel">
            <property name="enabled">
             <bool>true</bool>
@@ -2421,7 +2513,7 @@
            <property name="minimumSize">
             <size>
              <width>60</width>
-             <height>25</height>
+             <height>30</height>
             </size>
            </property>
            <property name="baseSize">
@@ -2440,6 +2532,11 @@
          </item>
          <item row="9" column="2">
           <widget class="QLabel" name="labelGraphicsSectionScaleMax">
+           <property name="font">
+            <font>
+             <pointsize>10</pointsize>
+            </font>
+           </property>
            <property name="text">
             <string>scale max.</string>
            </property>
@@ -2479,6 +2576,11 @@
          </item>
          <item row="10" column="2">
           <widget class="QLabel" name="labelGraphicsSectionScaleMin">
+           <property name="font">
+            <font>
+             <pointsize>10</pointsize>
+            </font>
+           </property>
            <property name="text">
             <string>scale min.</string>
            </property>
@@ -2491,6 +2593,12 @@
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>25</height>
+            </size>
            </property>
            <property name="text">
             <string>source strength</string>
@@ -2542,6 +2650,11 @@
          </item>
          <item row="11" column="2">
           <widget class="QLabel" name="labelGraphicsSectionRangeMin">
+           <property name="font">
+            <font>
+             <pointsize>10</pointsize>
+            </font>
+           </property>
            <property name="text">
             <string>min. value</string>
            </property>
@@ -2552,12 +2665,12 @@
            <property name="minimumSize">
             <size>
              <width>60</width>
-             <height>25</height>
+             <height>30</height>
             </size>
            </property>
            <property name="font">
             <font>
-             <pointsize>9</pointsize>
+             <pointsize>12</pointsize>
              <weight>50</weight>
              <bold>false</bold>
             </font>
@@ -2572,6 +2685,11 @@
          </item>
          <item row="8" column="2">
           <widget class="QLabel" name="labelGraphicsSectionRangeMax">
+           <property name="font">
+            <font>
+             <pointsize>10</pointsize>
+            </font>
+           </property>
            <property name="text">
             <string>max. value</string>
            </property>
@@ -2579,6 +2697,12 @@
          </item>
          <item row="0" column="0" alignment="Qt::AlignRight">
           <widget class="QLabel" name="labelGraphicsSectionSelect">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>25</height>
+            </size>
+           </property>
            <property name="text">
             <string>stripe selection</string>
            </property>
@@ -2587,84 +2711,8 @@
            </property>
           </widget>
          </item>
-         <item row="5" column="2">
-          <widget class="QLabel" name="labelGraphicsSectionY">
-           <property name="text">
-            <string>y (av.)</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
          <item row="8" column="3">
           <widget class="QLabel" name="graphicsSectionRangeMax">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>21</height>
-            </size>
-           </property>
-           <property name="baseSize">
-            <size>
-             <width>80</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>1,00</string>
-           </property>
-           <property name="indent">
-            <number>7</number>
-           </property>
-          </widget>
-         </item>
-         <item row="6" column="2">
-          <widget class="QLabel" name="labelGraphicsSectionZ">
-           <property name="text">
-            <string>z (av.)</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="3">
-          <widget class="QLabel" name="graphicsSectionY">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>21</height>
-            </size>
-           </property>
-           <property name="baseSize">
-            <size>
-             <width>80</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>1,00</string>
-           </property>
-           <property name="indent">
-            <number>7</number>
-           </property>
-          </widget>
-         </item>
-         <item row="6" column="3">
-          <widget class="QLabel" name="graphicsSectionZ">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
              <horstretch>0</horstretch>
@@ -2699,6 +2747,12 @@
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>25</height>
+            </size>
+           </property>
            <property name="text">
             <string>show wake</string>
            </property>
@@ -2707,10 +2761,126 @@
            </property>
           </widget>
          </item>
-         <item row="5" column="1">
+         <item row="5" column="0" alignment="Qt::AlignRight">
           <widget class="QLabel" name="labelGraphicsSectionPosition">
+           <property name="font">
+            <font>
+             <pointsize>9</pointsize>
+            </font>
+           </property>
            <property name="text">
             <string>position</string>
+           </property>
+           <property name="margin">
+            <number>4</number>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="1">
+          <widget class="QLabel" name="labelGraphicsSectionY">
+           <property name="font">
+            <font>
+             <pointsize>9</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>y (av.)</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="1">
+          <widget class="QLabel" name="labelGraphicsSectionZ">
+           <property name="font">
+            <font>
+             <pointsize>9</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>z (av.)</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="2">
+          <widget class="QLabel" name="graphicsSectionY">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>21</height>
+            </size>
+           </property>
+           <property name="baseSize">
+            <size>
+             <width>80</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>9</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>1,00</string>
+           </property>
+           <property name="indent">
+            <number>7</number>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="2">
+          <widget class="QLabel" name="graphicsSectionZ">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>21</height>
+            </size>
+           </property>
+           <property name="baseSize">
+            <size>
+             <width>80</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>9</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>1,00</string>
+           </property>
+           <property name="indent">
+            <number>7</number>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="2" alignment="Qt::AlignRight">
+          <widget class="QLabel" name="labelGraphicsSectionModel">
+           <property name="font">
+            <font>
+             <pointsize>9</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>model</string>
            </property>
            <property name="margin">
             <number>4</number>
@@ -2727,7 +2897,7 @@
        <widget class="QWidget" name="gridLayoutWidget_6">
         <property name="geometry">
          <rect>
-          <x>280</x>
+          <x>400</x>
           <y>20</y>
           <width>91</width>
           <height>80</height>
@@ -2764,7 +2934,7 @@
        <widget class="QWidget" name="gridLayoutWidget_7">
         <property name="geometry">
          <rect>
-          <x>280</x>
+          <x>400</x>
           <y>20</y>
           <width>91</width>
           <height>80</height>
@@ -2804,8 +2974,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1200</width>
-     <height>20</height>
+     <width>1405</width>
+     <height>30</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuHelp">

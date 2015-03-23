@@ -946,7 +946,7 @@ void SourceDoubletModel::runModelAOA(double aoa)
 	// set a pointer to the panel being analyzed
 	p = mesh->at(ipan);
         // debugging output
-        printf(" thread No. %d : panel %d\n",omp_get_thread_num(),ipan);
+        // printf(" thread No. %d : panel %d\n",omp_get_thread_num(),ipan);
 	// compute the influence at all control points
 	for (int icp=0; icp<NumberCP; icp++)
 	{

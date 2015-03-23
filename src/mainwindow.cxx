@@ -46,7 +46,7 @@ MainWindow::MainWindow(QMainWindow *parent)
     // setup user interface
     this->setLocale(QLocale::C);
     ui.setupUi(this);
-    this->setGeometry(200,100,800,600);
+    // this->setGeometry(200,100,1400,900);
 
     connect( ui.actionAbout, SIGNAL( triggered() ), this, SLOT( HelpAbout() ) );
     connect( ui.actionNew, SIGNAL( triggered() ), this, SLOT( FileNew() ) );

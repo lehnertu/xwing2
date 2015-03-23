@@ -21,7 +21,7 @@ hypnos {
   # module load openblas
   OPENBLAS_ROOT = /opt/pkg/numlib/openblas/0.2.8/gnu/4.8.2/64/opt
   OPEN_BLAS_PATH = /opt/pkg/numlib/openblas/0.2.8/gnu/4.8.2/64/opt
-  VTK_PATH = /home/lehnertu/Programming/VTK6.0.0_install/
+  VTK_PATH = /home/lehnertu/Programming/VTK6.0.0_install
   VTK_INCLUDE_PATH = $$VTK_PATH/include/vtk-6.0/
   VTK_LIB_PATH = $$VTK_PATH/lib/
 }
@@ -30,7 +30,7 @@ hypnos {
 fwl08 {
   message("setting paths for FWL08")
   OPEN_BLAS_PATH = /home/lehnertu/Programming/OpenBLAS
-  VTK_PATH = /home/lehnertu/Programming/VTK6.0.0_install/
+  VTK_PATH = /home/lehnertu/Programming/VTK6.0.0_install
   VTK_INCLUDE_PATH = $$VTK_PATH/include/vtk-6.0/
   VTK_LIB_PATH = $$VTK_PATH/lib/
 }
