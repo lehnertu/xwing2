@@ -182,6 +182,11 @@ void MainWindow::updateGraph()
 	break;
       };
     case 2 :
+    // section display
+    {
+      break;
+    };
+    case 3 :
     // gamma 2D display
       {
 	  // remove all previous plots
@@ -198,7 +203,7 @@ void MainWindow::updateGraph()
 	graphWidget->GetRenderWindow()->AddRenderer(plotRenderer);
 	break;
       };
-    case 3 :
+    case 4 :
     // cl cd plot
       {
 	chartClCdPlot->ClearPlots();
@@ -438,11 +443,24 @@ void MainWindow::updateGraphicsTab()
 	break;
       };
     case 2 :
+    // section display
+      {
+	if (selectModelGraphics==SelectVLM)
+	{
+	  ui.graphicsSectionSelectModel->setText("VLM");
+	}
+	if (selectModelGraphics==SelectSPM)
+	{
+	  ui.graphicsSectionSelectModel->setText("SPM");
+	}
+	break;
+      };
+    case 3 :
     // gamma 2D display
       {
 	break;
       };
-    case 3 :
+    case 4 :
     // cl cd plot
       {
 	break;
@@ -534,6 +552,16 @@ void MainWindow::on_doubleGraphicsRenderScaleMax_editingFinished()
   updateGraph();
 }
 
+void MainWindow::on_graphicsSectionSelectModel_pressed()
+{
+  if (selectModelGraphics==SelectVLM)
+    selectModelGraphics=SelectSPM;
+  else
+    selectModelGraphics=SelectVLM;
+  updateGraphicsTab();
+  updateGraph();
+}
+
 void MainWindow::on_graphGammaShowVLM_toggled()
 {
   updateGraph();
@@ -553,4 +581,4 @@ void MainWindow::on_graphLiftDragShowSPM_toggled()
 {
   updateGraph();
 }
-
+    
