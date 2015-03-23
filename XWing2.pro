@@ -10,36 +10,43 @@ DEPENDPATH += . ./src
 INCLUDEPATH += . ./src
 SOURCES_DIR = ./src
 
+# one has to define the machine on which the program is compiled
+# by calling is with something like
+# qmake "CONFIG+=fwl78"
+
 # compile on HYPNOS
-# OPEN_BLAS_PATH = /home/lehnertu/Programming/OpenBLAS
-# module load openblas
-# OPENBLAS_ROOT=/opt/pkg/numlib/openblas/0.2.8/gnu/4.8.2/64/opt
-# OPEN_BLAS_PATH = /opt/pkg/numlib/openblas/0.2.8/gnu/4.8.2/64/opt
+hypnos {
+  message("setting paths for HYPNOS")
+  OPEN_BLAS_PATH = /home/lehnertu/Programming/OpenBLAS
+  # module load openblas
+  OPENBLAS_ROOT = /opt/pkg/numlib/openblas/0.2.8/gnu/4.8.2/64/opt
+  OPEN_BLAS_PATH = /opt/pkg/numlib/openblas/0.2.8/gnu/4.8.2/64/opt
+  VTK_PATH = /home/lehnertu/Programming/VTK6.0.0_install/
+  VTK_INCLUDE_PATH = $$VTK_PATH/include/vtk-6.0/
+  VTK_LIB_PATH = $$VTK_PATH/lib/
+}
 
 # compile on FWL08
-OPEN_BLAS_PATH = /home/lehnertu/Programming/OpenBLAS
+fwl08 {
+  message("setting paths for FWL08")
+  OPEN_BLAS_PATH = /home/lehnertu/Programming/OpenBLAS
+  VTK_PATH = /home/lehnertu/Programming/VTK6.0.0_install/
+  VTK_INCLUDE_PATH = $$VTK_PATH/include/vtk-6.0/
+  VTK_LIB_PATH = $$VTK_PATH/lib/
+}
 
 # compile on laptop
-# OPEN_BLAS_PATH = /home/ulf/Programming/openblas-r0.2.8.a
+fwl78 {
+  message("setting paths for FWL78")
+  OPEN_BLAS_PATH = /home/ulf/Programming/openblas-r0.2.8.a
+  VTK_PATH = /home/ulf/Programming/VTK
+  VTK_INCLUDE_PATH = $$VTK_PATH/include/vtk-6.0/
+  VTK_LIB_PATH = $$VTK_PATH/lib/
+#  VTK_INCLUDE_PATH = /home/ulf/Programming/VTK6.0.0/
+#  VTK_LIB_PATH = /home/ulf/Programming/VTK6.0.0_build/lib/
+}
 
 INCLUDEPATH += $$OPEN_BLAS_PATH/include
-
-# compile on HYPNOS
-# VTK_PATH = /home/lehnertu/Programming/VTK6.0.0_install/
-
-# compile on FWL08
-VTK_PATH = /home/lehnertu/Programming/VTK6.0.0_install/
-
-# # compile on laptop
-# VTK_PATH = /home/ulf/Programming/VTK
-# VTK_INCLUDE_PATH = /home/ulf/Programming/VTK6.0.0/
-# VTK_BUILD_PATH = /home/ulf/Programming/VTK6.0.0_build/
-# VTK_LIB_PATH = /home/ulf/Programming/VTK6.0.0_build/lib/
-
-# VTK_PATH = /home/lehnertu/Programming/VTK6.0.0_install/
-VTK_INCLUDE_PATH = $$VTK_PATH/include/vtk-6.0/
-VTK_LIB_PATH = $$VTK_PATH/lib/
-
 INCLUDEPATH += $$VTK_INCLUDE_PATH
 
 MOC_DIR = ./obj
