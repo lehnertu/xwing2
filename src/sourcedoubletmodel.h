@@ -82,6 +82,9 @@ class SourceDoubletModel
     // return whether the solution for the singularity strengths has bee found
     bool isSolved();
 
+    // return the number of panel/wake stripes
+    int numberWakes();
+
     // generate source data (vtkPolyData)
     // for visualization using VTK
     void sourcePanelsVTK(vtkPolyData *polyData,
@@ -144,6 +147,9 @@ private:
     // The model containes a number of variable singularity strengths.
     // We list which type of singularity is solved for on each panel.
     QList<variableSigularityType> *varType;
+    // the wake index doubles as an identification of the panel stripes
+    // all panels carry a reference to one wake stripe
+    QList<int> *wakeref;
 
     // independant wake simulation
     // From the corner points of the trailing panels free vortex lines emanate.

@@ -74,6 +74,7 @@ SourceDoubletModel::SourceDoubletModel(Model *geometrymodel)
   mesh = new QList<FlatPanel*>();
   wingref = new QList<int>();
   varType = new QList<variableSigularityType>();
+  wakeref = new QList<int>();
   wakelines = new QList<Streamline*>();
   wake = new QList<WakeStripe*>();
   // we need the free stream vector to create the wake mesh
@@ -111,6 +112,7 @@ SourceDoubletModel::SourceDoubletModel(Model *geometrymodel)
       mesh->clear();
       wingref->clear();
       varType->clear();
+      wakeref->clear();
       wakelines->clear();
       wake->clear();
       return;
@@ -136,12 +138,16 @@ SourceDoubletModel::SourceDoubletModel(Model *geometrymodel)
 	  mesh->append(new FlatPanel(A,B,C,D));
 	  wingref->append(w);
 	  varType->append(VariableSource);
+          // to be modified !!!
+          wakeref->append(0);
 	}
 	else
 	{
 	  mesh->append(new FlatPanel(A,B,C));
 	  wingref->append(w);
 	  varType->append(VariableSource);
+          // to be modified !!!
+          wakeref->append(0);
 	};
 	NumberOfPanels++;
 	i1+=1;
@@ -155,6 +161,8 @@ SourceDoubletModel::SourceDoubletModel(Model *geometrymodel)
 	    mesh->append(new FlatPanel(A,B,D));
 	    wingref->append(w);
 	    varType->append(VariableSource);
+            // to be modified !!!
+            wakeref->append(0);
 	  } else {
 	    A = ol->pointVec(i1);
 	    B = ol->pointVec(i1+1);
@@ -163,6 +171,8 @@ SourceDoubletModel::SourceDoubletModel(Model *geometrymodel)
 	    mesh->append(new FlatPanel(A,B,C,D));
 	    wingref->append(w);
 	    varType->append(VariableSource);
+            // to be modified !!!
+            wakeref->append(0);
 	  };
 	  NumberOfPanels++;
 	  i1+=1;
@@ -183,6 +193,7 @@ SourceDoubletModel::SourceDoubletModel(Model *geometrymodel)
       mesh->clear();
       wingref->clear();
       varType->clear();
+      wakeref->clear();
       wakelines->clear();
       wake->clear();
       return;
@@ -207,12 +218,17 @@ SourceDoubletModel::SourceDoubletModel(Model *geometrymodel)
 	{
 	  mesh->append(new FlatPanel(D,C,B,A));
 	  wingref->append(w);
-	  varType->append(VariableSource);	}
+	  varType->append(VariableSource);
+          // to be modified !!!
+          wakeref->append(0);
+        }
 	else
 	{
 	  mesh->append(new FlatPanel(A,C,B));
 	  wingref->append(w);
 	  varType->append(VariableSource);
+          // to be modified !!!
+          wakeref->append(0);
 	};
 	NumberOfPanels++;
 	i1+=1;
@@ -226,6 +242,8 @@ SourceDoubletModel::SourceDoubletModel(Model *geometrymodel)
 	    mesh->append(new FlatPanel(A,D,B));
 	    wingref->append(w);
 	    varType->append(VariableSource);
+            // to be modified !!!
+            wakeref->append(0);
 	  } else {
 	    A = ol->pointVec(i1);
 	    B = ol->pointVec(i1+1);
@@ -234,6 +252,8 @@ SourceDoubletModel::SourceDoubletModel(Model *geometrymodel)
 	    mesh->append(new FlatPanel(A,D,C,B));
 	    wingref->append(w);
 	    varType->append(VariableSource);
+            // to be modified !!!
+            wakeref->append(0);
 	  };
 	  NumberOfPanels++;
 	  i1+=1;
@@ -259,6 +279,7 @@ SourceDoubletModel::SourceDoubletModel(Model *geometrymodel)
 	mesh->clear();
 	wingref->clear();
 	varType->clear();
+        wakeref->clear();
 	wakelines->clear();
 	wake->clear();
         return;
@@ -345,6 +366,7 @@ SourceDoubletModel::SourceDoubletModel(Model *geometrymodel)
     mesh->clear();
     wingref->clear();
     varType->clear();
+    wakeref->clear();
     wakelines->clear();
     wake->clear();
     Globals::MainTextDisplay->append(QString("\nPaneling failed.\n"));
@@ -503,6 +525,8 @@ int SourceDoubletModel::createSegmentModel(int wingno, GeometrySegment *segment)
       mesh->append(new FlatPanel(A,C,D,B));
       wingref->append(wingno);
       varType->append(VariableDoublet);
+      // to be modified !!!
+      wakeref->append(0);
       NumberOfPanels++;
       npan++;
     };
@@ -568,6 +592,11 @@ bool SourceDoubletModel::isValid()
 bool SourceDoubletModel::isSolved()
 {
   return(validSolution);
+}
+
+int SourceDoubletModel::numberWakes()
+{
+  return(NumberOfWakes);
 }
 
 void SourceDoubletModel::sourcePanelsVTK(vtkPolyData *polyData,

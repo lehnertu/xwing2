@@ -448,10 +448,40 @@ void MainWindow::updateGraphicsTab()
 	if (selectModelGraphics==SelectVLM)
 	{
 	  ui.graphicsSectionSelectModel->setText("VLM");
+          if (flowVLM != NULL)
+          {
+            if (flowVLM->isValid())
+            {
+              ui.graphicsSectionSelectStripe->setMaximum(0);
+            }
+            else
+            {
+              ui.graphicsSectionSelectStripe->setMaximum(0);
+            };
+          }
+          else
+          {
+            ui.graphicsSectionSelectStripe->setMaximum(0);
+          };
 	}
 	if (selectModelGraphics==SelectSPM)
 	{
 	  ui.graphicsSectionSelectModel->setText("SPM");
+          if (flowSPM != NULL)
+          {
+            if (flowSPM->isValid())
+            {
+              ui.graphicsSectionSelectStripe->setMaximum(flowSPM->numberWakes()-1);
+            }
+            else
+            {
+              ui.graphicsSectionSelectStripe->setMaximum(0);
+            };
+          }
+          else
+          {
+            ui.graphicsSectionSelectStripe->setMaximum(0);
+          };
 	}
 	break;
       };
@@ -581,4 +611,4 @@ void MainWindow::on_graphLiftDragShowSPM_toggled()
 {
   updateGraph();
 }
-    
+
