@@ -109,7 +109,7 @@
        </size>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="tabGeometryWing">
        <attribute name="title">
@@ -2391,7 +2391,7 @@
          <rect>
           <x>20</x>
           <y>20</y>
-          <width>471</width>
+          <width>526</width>
           <height>244</height>
          </rect>
         </property>
@@ -2869,6 +2869,19 @@
            </property>
            <property name="indent">
             <number>7</number>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="2" colspan="2">
+          <widget class="QPushButton" name="buttonGraphicsSectionPrintStripe">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>30</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Print stripe data</string>
            </property>
           </widget>
          </item>
