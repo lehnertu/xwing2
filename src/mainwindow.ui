@@ -1938,7 +1938,7 @@
        <enum>QTabWidget::North</enum>
       </property>
       <property name="currentIndex">
-       <number>3</number>
+       <number>2</number>
       </property>
       <property name="usesScrollButtons">
        <bool>false</bool>
@@ -2761,22 +2761,22 @@
            </property>
           </widget>
          </item>
-         <item row="5" column="0" alignment="Qt::AlignRight">
-          <widget class="QLabel" name="labelGraphicsSectionPosition">
+         <item row="0" column="2" alignment="Qt::AlignRight">
+          <widget class="QLabel" name="labelGraphicsSectionModel">
            <property name="font">
             <font>
              <pointsize>9</pointsize>
             </font>
            </property>
            <property name="text">
-            <string>position</string>
+            <string>model</string>
            </property>
            <property name="margin">
             <number>4</number>
            </property>
           </widget>
          </item>
-         <item row="5" column="1">
+         <item row="5" column="0">
           <widget class="QLabel" name="labelGraphicsSectionY">
            <property name="font">
             <font>
@@ -2784,14 +2784,14 @@
             </font>
            </property>
            <property name="text">
-            <string>y (av.)</string>
+            <string>position    y</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>
-         <item row="6" column="1">
+         <item row="6" column="0">
           <widget class="QLabel" name="labelGraphicsSectionZ">
            <property name="font">
             <font>
@@ -2799,14 +2799,14 @@
             </font>
            </property>
            <property name="text">
-            <string>z (av.)</string>
+            <string>z</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>
-         <item row="5" column="2">
+         <item row="5" column="1">
           <widget class="QLabel" name="graphicsSectionY">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
@@ -2839,7 +2839,7 @@
            </property>
           </widget>
          </item>
-         <item row="6" column="2">
+         <item row="6" column="1">
           <widget class="QLabel" name="graphicsSectionZ">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
@@ -2869,21 +2869,6 @@
            </property>
            <property name="indent">
             <number>7</number>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="2" alignment="Qt::AlignRight">
-          <widget class="QLabel" name="labelGraphicsSectionModel">
-           <property name="font">
-            <font>
-             <pointsize>9</pointsize>
-            </font>
-           </property>
-           <property name="text">
-            <string>model</string>
-           </property>
-           <property name="margin">
-            <number>4</number>
            </property>
           </widget>
          </item>

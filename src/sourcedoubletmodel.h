@@ -130,6 +130,9 @@ class SourceDoubletModel
     void printSolution();
     void printCirculation();
 
+    // report model details
+    WakeStripe* getWake(int iw);
+    
     // generate graphics output
     void sourceGammaPlot(vtkChartXY *chart);
     void sourceClCdPlot(vtkChartXY *chart);

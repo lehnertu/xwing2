@@ -448,22 +448,11 @@ void MainWindow::updateGraphicsTab()
 	if (selectModelGraphics==SelectVLM)
 	{
 	  ui.graphicsSectionSelectModel->setText("VLM");
-          if (flowVLM != NULL)
-          {
-            if (flowVLM->isValid())
-            {
-              ui.graphicsSectionSelectStripe->setMaximum(0);
-            }
-            else
-            {
-              ui.graphicsSectionSelectStripe->setMaximum(0);
-            };
-          }
-          else
-          {
-            ui.graphicsSectionSelectStripe->setMaximum(0);
-          };
-	}
+	  ui.graphicsSectionSelectStripe->setMinimum(0);
+	  ui.graphicsSectionSelectStripe->setMaximum(0);
+	  ui.graphicsSectionY->setVisible(FALSE);
+	  ui.graphicsSectionZ->setVisible(FALSE);
+	};
 	if (selectModelGraphics==SelectSPM)
 	{
 	  ui.graphicsSectionSelectModel->setText("SPM");
@@ -472,16 +461,33 @@ void MainWindow::updateGraphicsTab()
             if (flowSPM->isValid())
             {
               ui.graphicsSectionSelectStripe->setMaximum(flowSPM->numberWakes()-1);
+	      ui.graphicsSectionSelectStripe->setMinimum(0);
+	      int iw = ui.graphicsSectionSelectStripe->value();
+	      WakeStripe* wake = flowSPM->getWake(iw);
+	      if (wake != 0)
+	      {
+		Vector cp = wake->wakeCP();
+		ui.graphicsSectionY->setText(QString("%1").arg(cp.y,0,'f',2));
+		ui.graphicsSectionZ->setText(QString("%1").arg(cp.z,0,'f',2));
+		ui.graphicsSectionY->setVisible(TRUE);
+		ui.graphicsSectionZ->setVisible(TRUE);
+	      };
             }
             else
             {
               ui.graphicsSectionSelectStripe->setMaximum(0);
+	      ui.graphicsSectionSelectStripe->setMinimum(0);
+	      ui.graphicsSectionY->setVisible(FALSE);
+	      ui.graphicsSectionZ->setVisible(FALSE);
             };
           }
           else
           {
             ui.graphicsSectionSelectStripe->setMaximum(0);
-          };
+	    ui.graphicsSectionSelectStripe->setMinimum(0);
+	    ui.graphicsSectionY->setVisible(FALSE);
+	    ui.graphicsSectionZ->setVisible(FALSE);
+	  };
 	}
 	break;
       };
@@ -588,6 +594,12 @@ void MainWindow::on_graphicsSectionSelectModel_pressed()
     selectModelGraphics=SelectSPM;
   else
     selectModelGraphics=SelectVLM;
+  updateGraphicsTab();
+  updateGraph();
+}
+
+void MainWindow::on_graphicsSectionSelectStripe_valueChanged(int value)
+{
   updateGraphicsTab();
   updateGraph();
 }

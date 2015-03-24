@@ -1633,6 +1633,14 @@ void SourceDoubletModel::printCirculation()
   }
 }
 
+WakeStripe* SourceDoubletModel::getWake(int iw)
+{
+  if (valid && (iw>=0) && (iw<NumberOfWakes))
+    return(wake->at(iw));
+  else
+    return(0);
+}
+
 void SourceDoubletModel::sourceGammaPlot(vtkChartXY *chart)
 {
   char label[40];

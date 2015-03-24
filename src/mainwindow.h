@@ -162,6 +162,7 @@ private slots:
     void on_doubleGraphicsRenderScaleMin_editingFinished();
     void on_doubleGraphicsRenderScaleMax_editingFinished();
     void on_graphicsSectionSelectModel_pressed();
+    void on_graphicsSectionSelectStripe_valueChanged(int value);
     void on_graphGammaShowVLM_toggled();
     void on_graphGammaShowSPM_toggled();
     void on_graphLiftDragShowVLM_toggled();
