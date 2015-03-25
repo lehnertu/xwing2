@@ -2880,6 +2880,9 @@
              <height>30</height>
             </size>
            </property>
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
            <property name="text">
             <string>Print stripe data</string>
            </property>
