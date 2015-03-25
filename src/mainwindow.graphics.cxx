@@ -606,7 +606,7 @@ void MainWindow::on_graphicsSectionSelectStripe_valueChanged(int value)
 
 void MainWindow::on_buttonGraphicsSectionPrintStripe_pressed()
 {
-  Globals::MainTextDisplay->append(QString("\nflow properties of panel stripe :\n"));
+  flowSPM->printStripe(ui.graphicsSectionSelectStripe->value());
 }
 
 void MainWindow::on_graphGammaShowVLM_toggled()

@@ -132,16 +132,16 @@ SourceDoubletModel::SourceDoubletModel(Model *geometrymodel)
 	  mesh.append(new FlatPanel(A,B,C,D));
 	  wingref.append(w);
 	  varType.append(VariableSource);
-          // to be modified !!!
-          wakeref.append(0);
+          // no wake association
+          wakeref.append(-1);
 	}
 	else
 	{
 	  mesh.append(new FlatPanel(A,B,C));
 	  wingref.append(w);
 	  varType.append(VariableSource);
-          // to be modified !!!
-          wakeref.append(0);
+          // no wake association
+          wakeref.append(-1);
 	};
 	NumberOfPanels++;
 	i1+=1;
@@ -155,8 +155,8 @@ SourceDoubletModel::SourceDoubletModel(Model *geometrymodel)
 	    mesh.append(new FlatPanel(A,B,D));
 	    wingref.append(w);
 	    varType.append(VariableSource);
-            // to be modified !!!
-            wakeref.append(0);
+          // no wake association
+            wakeref.append(-1);
 	  } else {
 	    A = ol->pointVec(i1);
 	    B = ol->pointVec(i1+1);
@@ -165,8 +165,8 @@ SourceDoubletModel::SourceDoubletModel(Model *geometrymodel)
 	    mesh.append(new FlatPanel(A,B,C,D));
 	    wingref.append(w);
 	    varType.append(VariableSource);
-            // to be modified !!!
-            wakeref.append(0);
+          // no wake association
+            wakeref.append(-1);
 	  };
 	  NumberOfPanels++;
 	  i1+=1;
@@ -213,16 +213,16 @@ SourceDoubletModel::SourceDoubletModel(Model *geometrymodel)
 	  mesh.append(new FlatPanel(D,C,B,A));
 	  wingref.append(w);
 	  varType.append(VariableSource);
-          // to be modified !!!
-          wakeref.append(0);
+          // no wake association
+          wakeref.append(-1);
         }
 	else
 	{
 	  mesh.append(new FlatPanel(A,C,B));
 	  wingref.append(w);
 	  varType.append(VariableSource);
-          // to be modified !!!
-          wakeref.append(0);
+          // no wake association
+          wakeref.append(-1);
 	};
 	NumberOfPanels++;
 	i1+=1;
@@ -236,8 +236,8 @@ SourceDoubletModel::SourceDoubletModel(Model *geometrymodel)
 	    mesh.append(new FlatPanel(A,D,B));
 	    wingref.append(w);
 	    varType.append(VariableSource);
-            // to be modified !!!
-            wakeref.append(0);
+          // no wake association
+            wakeref.append(-1);
 	  } else {
 	    A = ol->pointVec(i1);
 	    B = ol->pointVec(i1+1);
@@ -246,8 +246,8 @@ SourceDoubletModel::SourceDoubletModel(Model *geometrymodel)
 	    mesh.append(new FlatPanel(A,D,C,B));
 	    wingref.append(w);
 	    varType.append(VariableSource);
-            // to be modified !!!
-            wakeref.append(0);
+          // no wake association
+            wakeref.append(-1);
 	  };
 	  NumberOfPanels++;
 	  i1+=1;
@@ -309,6 +309,14 @@ SourceDoubletModel::SourceDoubletModel(Model *geometrymodel)
       QString("The length of the list of panel variable types differes from the number of generated panels."));
     valid = FALSE;
   };
+  if (NumberOfPanels != wakeref.count())
+  {
+    Globals::MainTextDisplay->append(
+      QString("\nThis should never happen - program error"));
+    Globals::MainTextDisplay->append(
+      QString("The length of the list of wake references differes from the number of generated panels."));
+    valid = FALSE;
+  };
   if (NumberOfWakes != wake.count())
   {
     Globals::MainTextDisplay->append(
@@ -337,8 +345,8 @@ SourceDoubletModel::SourceDoubletModel(Model *geometrymodel)
     for (int icp=0; icp<NumberOfPanels; icp++)
     {
       FlatPanel *p = mesh.at(icp);
-      // we use control points displaced to the inside of the panel
-      ControlPoint[indexCP] = p->panelCenter() + p->panelNormal()*0.0001;
+      // we use control points displaced to the outside of the panel
+      ControlPoint[indexCP] = p->panelCenter() + p->panelNormal()*0.000001;
       normal[indexCP] = p->panelNormal();
       BC[indexCP] = PerturbationPotentialBC;
       indexCP++;
@@ -514,8 +522,7 @@ int SourceDoubletModel::createSegmentModel(int wingno, GeometrySegment *segment)
       mesh.append(new FlatPanel(A,C,D,B));
       wingref.append(wingno);
       varType.append(VariableDoublet);
-      // to be modified !!!
-      wakeref.append(0);
+      wakeref.append(NumberOfWakes);
       NumberOfPanels++;
       npan++;
     };
@@ -1620,6 +1627,57 @@ void SourceDoubletModel::printCirculation()
     Globals::MainTextDisplay->setCurrentFont(previous);
     Globals::MainTextDisplay->append(QString("\n"));
   }
+}
+
+void SourceDoubletModel::printStripe(int iw)
+{
+  if(valid && (iw>=0) && (iw<NumberOfWakes))
+  {
+    Globals::MainTextDisplay->append(QString("\nflow properties of panel stripe %1:\n").arg(iw));
+    QFont previous = Globals::MainTextDisplay->currentFont();
+    QFont actual = QFont(previous);
+    actual.setStyleHint(QFont::TypeWriter);
+    actual.setFixedPitch(TRUE);
+    actual.setKerning(FALSE);
+    actual.setPointSize(8);
+    Globals::MainTextDisplay->setCurrentFont(actual);
+    Globals::MainTextDisplay->setTabStopWidth(40);
+    Globals::MainTextDisplay->append(QString("  \t        panel center                                   \t doublet   \t source           \t pressure"));
+    Globals::MainTextDisplay->append(QString("  \t                                                             \t strength  \t strength         \t coeff."));
+    Globals::MainTextDisplay->append(QString("---------------------------------------------------------------------------------------------------------------------------"));
+    for (int ipan=0; ipan<NumberOfPanels; ipan++)
+    {
+      if (wakeref.at(ipan)==iw)
+      {
+	FlatPanel *p = mesh.at(ipan);
+	Vector pc = p->panelCenter();
+	double mu = 0.0;
+	double sig = 0.0;
+	double cp = 0.0;
+	if (validSolution)
+	{
+	  mu = muSolution[ipan];
+	  sig = sigSolution[ipan];
+	  cp = cpSolution[ipan];
+	};
+	Globals::MainTextDisplay->append(QString("  %1 :\t(%2   %3   %4  )      \t%5    \t%6    \t%7")
+	  .arg(ipan,4)
+	  .arg(pc.x,8,'f',2).arg(pc.y,8,'f',2).arg(pc.z,8,'f',2)
+	  .arg(mu,12,'e',3).arg(sig,12,'e',3).arg(cp,12,'e',3));
+      };
+    };
+    double muw = 0.0;
+    if (validSolution)
+      muw = muSolution[NumberOfPanels+iw];
+    Vector wcp = wake.at(iw)->wakeCP();
+    Vector wn = wake.at(iw)->wakeNormal();
+    Globals::MainTextDisplay->append(QString("  wake :\t(%1   %2   %3  )  \t%4  \t n=(%5   %6   %7  )")
+      .arg(wcp.x,8,'f',2).arg(wcp.y,8,'f',2).arg(wcp.z,8,'f',2)
+      .arg(muw,12,'e',3)
+      .arg(wn.x,8,'f',2).arg(wn.y,8,'f',2).arg(wn.z,8,'f',2));
+    Globals::MainTextDisplay->setCurrentFont(previous);
+    Globals::MainTextDisplay->append(QString("\n"));
+  };
 }
 
 WakeStripe* SourceDoubletModel::getWake(int iw)

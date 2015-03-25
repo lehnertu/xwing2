@@ -95,7 +95,7 @@ class SourceDoubletModel
 			 bool showFlowDirection=FALSE,
 			 flowRenderMode renderMode=RenderCP
 			);
-    void sourceWakeVTK(vtkPolyData *polyData);
+    void sourceWakeVTK(  vtkPolyData *polyData);
 
     // generate export data of all panels in STL format
     void exportSTL(QTextStream *ts);
@@ -131,6 +131,7 @@ class SourceDoubletModel
     void printPaneling();
     void printSolution();
     void printCirculation();
+    void printStripe(int iw);
 
     // generate graphics output
     void sourceGammaPlot(vtkChartXY *chart);

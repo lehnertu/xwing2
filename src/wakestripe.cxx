@@ -60,7 +60,7 @@ WakeStripe::WakeStripe(Streamline *A, Streamline *B)
     Vector D = filamentA->point(ipan+1);
     Vector E = filamentB->point(ipan);
     Vector F = filamentB->point(ipan+1);
-    panels[ipan] = new FlatPanel(D,C,E,F);
+    panels[ipan] = new FlatPanel(C,D,F,E);
   };
   // the first panel defines the wake normal
   Normal = panels[0]->panelNormal();
