@@ -134,6 +134,7 @@ class SourceDoubletModel
     void printStripe(int iw);
 
     // generate graphics output
+    void sourceStripePlot(vtkChartXY *chart, int iw);
     void sourceGammaPlot(vtkChartXY *chart);
     void sourceClCdPlot(vtkChartXY *chart);
 

@@ -953,10 +953,8 @@ void SourceDoubletModel::runModelAOA(double aoa)
   { // begin parallel domain
     #pragma omp single
     {
-      printf("computing on %d cores\n",omp_get_num_procs());
       Globals::MainTextDisplay->append(
         QString("computing on %1 cores").arg(omp_get_num_procs()));
-      printf("computing with %d threads\n",omp_get_num_threads());
       Globals::MainTextDisplay->append(
         QString("computing with %1 threads").arg(omp_get_num_threads()));
     };
@@ -1634,17 +1632,23 @@ void SourceDoubletModel::printStripe(int iw)
   if(valid && (iw>=0) && (iw<NumberOfWakes))
   {
     Globals::MainTextDisplay->append(QString("\nflow properties of panel stripe %1:\n").arg(iw));
-    QFont previous = Globals::MainTextDisplay->currentFont();
-    QFont actual = QFont(previous);
-    actual.setStyleHint(QFont::TypeWriter);
-    actual.setFixedPitch(TRUE);
-    actual.setKerning(FALSE);
-    actual.setPointSize(8);
-    Globals::MainTextDisplay->setCurrentFont(actual);
-    Globals::MainTextDisplay->setTabStopWidth(40);
-    Globals::MainTextDisplay->append(QString("  \t        panel center                                   \t doublet   \t source           \t pressure"));
-    Globals::MainTextDisplay->append(QString("  \t                                                             \t strength  \t strength         \t coeff."));
-    Globals::MainTextDisplay->append(QString("---------------------------------------------------------------------------------------------------------------------------"));
+    QString tab =
+    QString("<p style=\"font-size:9pt\">")+
+    QString("<table cellpadding=\"0\" cellspacing=\"0\">")+
+    QString("<tr>")+
+    QString("<td width = \"100\"></td>")+
+    QString("<td width = \"250\">panel center</td>")+
+    QString("<td width = \"150\">doublet</td>")+
+    QString("<td width = \"150\">source</td>")+
+    QString("<td width = \"150\">pressure</td>")+
+    QString("</tr>")+
+    QString("<tr>")+
+    QString("<td></td>")+
+    QString("<td></td>")+
+    QString("<td>strength</td>")+
+    QString("<td>strength</td>")+
+    QString("<td>coefficient</td>")+
+    QString("</tr>");
     for (int ipan=0; ipan<NumberOfPanels; ipan++)
     {
       if (wakeref.at(ipan)==iw)
@@ -1660,10 +1664,13 @@ void SourceDoubletModel::printStripe(int iw)
 	  sig = sigSolution[ipan];
 	  cp = cpSolution[ipan];
 	};
-	Globals::MainTextDisplay->append(QString("  %1 :\t(%2   %3   %4  )      \t%5    \t%6    \t%7")
-	  .arg(ipan,4)
-	  .arg(pc.x,8,'f',2).arg(pc.y,8,'f',2).arg(pc.z,8,'f',2)
-	  .arg(mu,12,'e',3).arg(sig,12,'e',3).arg(cp,12,'e',3));
+	tab += QString("<tr>");
+	tab += QString("<td>%1</td>").arg(ipan,4);
+	tab += QString("<td>(  %1      %2      %3   )</td>").arg(pc.x,8,'f',2).arg(pc.y,8,'f',2).arg(pc.z,8,'f',2);
+	tab += QString("<td>%1</td>").arg(mu,12,'e',3);
+	tab += QString("<td>%1</td>").arg(sig,12,'e',3);
+	tab += QString("<td>%1</td>").arg(cp,12,'e',3);
+	tab += QString("</tr>");
       };
     };
     double muw = 0.0;
@@ -1671,11 +1678,15 @@ void SourceDoubletModel::printStripe(int iw)
       muw = muSolution[NumberOfPanels+iw];
     Vector wcp = wake.at(iw)->wakeCP();
     Vector wn = wake.at(iw)->wakeNormal();
-    Globals::MainTextDisplay->append(QString("  wake :\t(%1   %2   %3  )  \t%4  \t n=(%5   %6   %7  )")
-      .arg(wcp.x,8,'f',2).arg(wcp.y,8,'f',2).arg(wcp.z,8,'f',2)
-      .arg(muw,12,'e',3)
-      .arg(wn.x,8,'f',2).arg(wn.y,8,'f',2).arg(wn.z,8,'f',2));
-    Globals::MainTextDisplay->setCurrentFont(previous);
+    tab += QString("<tr>");
+    tab += QString("<td>wake</td>");
+    tab += QString("<td>(  %1      %2      %3   )</td>").arg(wcp.x,8,'f',2).arg(wcp.y,8,'f',2).arg(wcp.z,8,'f',2);
+    tab += QString("<td>%1</td>").arg(muw,12,'e',3);
+    tab += QString("<td></td>");
+    tab += QString("<td>n = (  %1      %2      %3   )</td>").arg(wn.x,8,'f',2).arg(wn.y,8,'f',2).arg(wn.z,8,'f',2);
+    tab += QString("</tr>");
+    tab += QString("</table></p>");
+    Globals::MainTextDisplay->append(tab);
     Globals::MainTextDisplay->append(QString("\n"));
   };
 }
@@ -1688,11 +1699,66 @@ WakeStripe* SourceDoubletModel::getWake(int iw)
     return(0);
 }
 
+void SourceDoubletModel::sourceStripePlot(vtkChartXY *chart, int iw)
+{
+  if (validSolution)
+  {
+    // create a table with two columns for the panel data
+    vtkSmartPointer<vtkTable> table = vtkSmartPointer<vtkTable>::New();
+    vtkSmartPointer<vtkFloatArray> arrX = vtkSmartPointer<vtkFloatArray>::New();
+    arrX->SetName("x [mm]");
+    table->AddColumn(arrX);
+    vtkSmartPointer<vtkFloatArray> arrCp = vtkSmartPointer<vtkFloatArray>::New();
+    arrCp->SetName("cp");
+    table->AddColumn(arrCp);
+    // the first run through the panels is just to determine the number of entries
+    int np = 0;
+    for (int ipan=0; ipan<NumberOfPanels; ipan++)
+    {
+      if (wakeref.at(ipan)==iw) np++;
+    };
+    table->SetNumberOfRows(np);
+    // now fill the table with values
+    int ip=0;	// the line index
+    double xmin=1.0e12;
+    double xmax=-1.0e12;
+    double cpmin=1.0e12;
+    double cpmax=-1.0e12;
+    for (int ipan=0; ipan<NumberOfPanels; ipan++)
+    {
+      if (wakeref.at(ipan)==iw)
+      {
+	FlatPanel *p = mesh.at(ipan);
+	double x=p->panelCenter().x;
+	if (x<xmin) xmin=x;
+	if (x>xmax) xmax=x;
+	table->SetValue(ip, 0, x);
+	double cp=cpSolution[ipan];
+	if (cp<cpmin) cpmin=cp;
+	if (cp>cpmax) cpmax=cp;
+	table->SetValue(ip, 1, cp);
+	ip++;
+      };
+    };
+    // add the plot
+    vtkPlot *pl = chart->AddPlot(vtkChart::LINE);
+    pl->SetInputData(table, 0, 1);
+    // decorate the chart
+    chart->SetDrawAxesAtOrigin(false);
+    chart->SetShowLegend(false);
+    chart->GetAxis(vtkAxis::LEFT)->SetMinimum(1.1*cpmax-0.1*cpmin);
+    chart->GetAxis(vtkAxis::LEFT)->SetMaximum(1.1*cpmin-0.1*cpmax);
+    chart->GetAxis(vtkAxis::LEFT)->SetTitle("cp");
+    chart->GetAxis(vtkAxis::LEFT)->SetBehavior(vtkAxis::FIXED);
+    chart->GetAxis(vtkAxis::BOTTOM)->SetMinimum(xmin);
+    chart->GetAxis(vtkAxis::BOTTOM)->SetMaximum(xmax);
+    chart->GetAxis(vtkAxis::BOTTOM)->SetTitle("x position [mm]");
+  };
+}
+
 void SourceDoubletModel::sourceGammaPlot(vtkChartXY *chart)
 {
   char label[40];
-  // remove all previous plots
-  // chart->ClearPlots();
   if (validSolution && Trefftz_data_avail)
   {
     // keep track of the extreme circulation values

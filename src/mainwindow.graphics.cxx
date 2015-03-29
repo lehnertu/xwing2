@@ -37,6 +37,7 @@ void MainWindow::updateGraph()
   meshActor->VisibilityOff();
   colorScale->VisibilityOff();
   wakeActor->VisibilityOff();
+  plotStripeActor->VisibilityOff();
   plotGammaActor->VisibilityOff();
   plotClCdActor->VisibilityOff();
   graphWidget->GetRenderWindow()->RemoveRenderer(graphRenderer);
@@ -183,13 +184,24 @@ void MainWindow::updateGraph()
       };
     case 2 :
     // section display
-    {
-      break;
-    };
+      {
+	chartStripePlot->ClearPlots();
+	if (selectModelGraphics==SelectVLM)
+	{
+	};
+	if (selectModelGraphics==SelectSPM)
+	{
+	  if (flowSPM != 0)
+	    flowSPM->sourceStripePlot(chartStripePlot,ui.graphicsSectionSelectStripe->value());
+	};
+	plotStripeActor->VisibilityOn();
+	graphWidget->GetRenderWindow()->AddRenderer(plotRenderer);
+	break;
+      };
     case 3 :
     // gamma 2D display
       {
-	  // remove all previous plots
+	// remove all previous plots
 	chartGammaPlot->ClearPlots();
 	if ( ui.graphGammaShowVLM->isChecked() && (flowVLM != NULL) )
 	{
@@ -606,7 +618,14 @@ void MainWindow::on_graphicsSectionSelectStripe_valueChanged(int value)
 
 void MainWindow::on_buttonGraphicsSectionPrintStripe_pressed()
 {
-  flowSPM->printStripe(ui.graphicsSectionSelectStripe->value());
+  if (selectModelGraphics==SelectVLM)
+  {
+  }
+  else
+  {
+    if (flowSPM != 0)
+      flowSPM->printStripe(ui.graphicsSectionSelectStripe->value());
+  };
 }
 
 void MainWindow::on_graphGammaShowVLM_toggled()

@@ -204,6 +204,8 @@ private:
     vtkSmartPointer<vtkActor> wakeActor;
 
     // rendering of 2D plots
+    vtkSmartPointer<vtkChartXY> chartStripePlot;
+    vtkSmartPointer<vtkContextActor> plotStripeActor;
     vtkSmartPointer<vtkChartXY> chartGammaPlot;
     vtkSmartPointer<vtkContextActor> plotGammaActor;
     vtkSmartPointer<vtkChartXY> chartClCdPlot;

@@ -68,7 +68,7 @@ MainWindow::MainWindow(QMainWindow *parent)
     graphWindow = new QWidget(this, Qt::Window | Qt::CustomizeWindowHint |
       Qt::WindowTitleHint | Qt::WindowSystemMenuHint );
     graphWindow->setWindowTitle(QString("XWing2 - rendering window"));
-    graphWindow->setGeometry(100,50,800,600);
+    graphWindow->setGeometry(100,50,1050,800);
     QVBoxLayout *graphLayout = new QVBoxLayout;
     graphWidget = new QVTKWidget(graphWindow);
     graphWidget->setMinimumSize(400,300);
@@ -135,6 +135,10 @@ MainWindow::MainWindow(QMainWindow *parent)
     wakeActor->GetProperty()->SetOpacity(1.0);
 
     // create actors for the plots
+    chartStripePlot = vtkSmartPointer<vtkChartXY>::New();
+    chartStripePlot->SetTitle("pressure distribution");
+    plotStripeActor = vtkSmartPointer<vtkContextActor>::New();
+    plotStripeActor->GetScene()->AddItem(chartStripePlot);
     chartGammaPlot = vtkSmartPointer<vtkChartXY>::New();
     chartGammaPlot->SetTitle("circulation distribution");
     plotGammaActor = vtkSmartPointer<vtkContextActor>::New();
@@ -153,6 +157,7 @@ MainWindow::MainWindow(QMainWindow *parent)
     graphRenderer->AddActor(wakeActor);
     graphRenderer->SetBackground(0.10, 0.20, 0.40);
     plotRenderer = vtkRenderer::New();
+    plotRenderer->AddActor(plotStripeActor);
     plotRenderer->AddActor(plotGammaActor);
     plotRenderer->AddActor(plotClCdActor);
     plotRenderer->SetBackground(1.0, 1.0, 1.0);
@@ -176,6 +181,7 @@ MainWindow::MainWindow(QMainWindow *parent)
         QString("but WITHOUT ANY WARRANTY - without even the implied warranty of\n")+
         QString("MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n")+
         QString("See the GNU General Public License for more details.\n\n"));
+
     Globals::MainStatusBar = ui.statusbar;
     Globals::lastDataDirectory = QDir::current().absolutePath();
     Globals::lastModelFile = "";
