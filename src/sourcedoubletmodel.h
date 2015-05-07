@@ -82,6 +82,11 @@ class SourceDoubletModel
     // return whether the solution for the singularity strengths has bee found
     bool isSolved();
 
+    // return the number of panel/wake stripes
+    int numberWakes();
+    // return a reference to one wake
+    WakeStripe* getWake(int iw);
+    
     // generate source data (vtkPolyData)
     // for visualization using VTK
     void sourcePanelsVTK(vtkPolyData *polyData,
@@ -90,7 +95,7 @@ class SourceDoubletModel
 			 bool showFlowDirection=FALSE,
 			 flowRenderMode renderMode=RenderCP
 			);
-    void sourceWakeVTK(vtkPolyData *polyData);
+    void sourceWakeVTK(  vtkPolyData *polyData);
 
     // generate export data of all panels in STL format
     void exportSTL(QTextStream *ts);
@@ -126,8 +131,10 @@ class SourceDoubletModel
     void printPaneling();
     void printSolution();
     void printCirculation();
+    void printStripe(int iw);
 
     // generate graphics output
+    void sourceStripePlot(vtkChartXY *chart, int iw);
     void sourceGammaPlot(vtkChartXY *chart);
     void sourceClCdPlot(vtkChartXY *chart);
 
@@ -138,20 +145,23 @@ private:
     bool validSolution;
 
     int NumberOfPanels;
-    QList<FlatPanel*> *mesh;
+    QList<FlatPanel*> mesh;
     // We keep a list denoting to which wing a panel belongs
-    QList<int> *wingref;
+    QList<int> wingref;
     // The model containes a number of variable singularity strengths.
     // We list which type of singularity is solved for on each panel.
-    QList<variableSigularityType> *varType;
+    QList<variableSigularityType> varType;
+    // the wake index doubles as an identification of the panel stripes
+    // all panels carry a reference to one wake stripe
+    QList<int> wakeref;
 
     // independant wake simulation
     // From the corner points of the trailing panels free vortex lines emanate.
     // Two neighboughring vortices define a wake stripe alike a horse-shoe vortex
     int NumberOfFilaments;
-    QList<Streamline*> *wakelines;
+    QList<Streamline*> wakelines;
     int NumberOfWakes;
-    QList<WakeStripe*> *wake;
+    QList<WakeStripe*> wake;
 
     // Flow boundary conditions are enforced at a number of control points.
     // These comprise the panel centers and the wake control points.

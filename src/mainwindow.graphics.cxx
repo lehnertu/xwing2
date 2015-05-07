@@ -37,6 +37,7 @@ void MainWindow::updateGraph()
   meshActor->VisibilityOff();
   colorScale->VisibilityOff();
   wakeActor->VisibilityOff();
+  plotStripeActor->VisibilityOff();
   plotGammaActor->VisibilityOff();
   plotClCdActor->VisibilityOff();
   graphWidget->GetRenderWindow()->RemoveRenderer(graphRenderer);
@@ -182,9 +183,25 @@ void MainWindow::updateGraph()
 	break;
       };
     case 2 :
+    // section display
+      {
+	chartStripePlot->ClearPlots();
+	if (selectModelGraphics==SelectVLM)
+	{
+	};
+	if (selectModelGraphics==SelectSPM)
+	{
+	  if (flowSPM != 0)
+	    flowSPM->sourceStripePlot(chartStripePlot,ui.graphicsSectionSelectStripe->value());
+	};
+	plotStripeActor->VisibilityOn();
+	graphWidget->GetRenderWindow()->AddRenderer(plotRenderer);
+	break;
+      };
+    case 3 :
     // gamma 2D display
       {
-	  // remove all previous plots
+	// remove all previous plots
 	chartGammaPlot->ClearPlots();
 	if ( ui.graphGammaShowVLM->isChecked() && (flowVLM != NULL) )
 	{
@@ -198,7 +215,7 @@ void MainWindow::updateGraph()
 	graphWidget->GetRenderWindow()->AddRenderer(plotRenderer);
 	break;
       };
-    case 3 :
+    case 4 :
     // cl cd plot
       {
 	chartClCdPlot->ClearPlots();
@@ -438,11 +455,60 @@ void MainWindow::updateGraphicsTab()
 	break;
       };
     case 2 :
+    // section display
+      {
+	if (selectModelGraphics==SelectVLM)
+	{
+	  ui.graphicsSectionSelectModel->setText("VLM");
+	  ui.graphicsSectionSelectStripe->setMinimum(0);
+	  ui.graphicsSectionSelectStripe->setMaximum(0);
+	  ui.graphicsSectionY->setVisible(FALSE);
+	  ui.graphicsSectionZ->setVisible(FALSE);
+	};
+	if (selectModelGraphics==SelectSPM)
+	{
+	  ui.graphicsSectionSelectModel->setText("SPM");
+          if (flowSPM != NULL)
+          {
+            if (flowSPM->isValid())
+            {
+              ui.graphicsSectionSelectStripe->setMaximum(flowSPM->numberWakes()-1);
+	      ui.graphicsSectionSelectStripe->setMinimum(0);
+	      int iw = ui.graphicsSectionSelectStripe->value();
+	      WakeStripe* wake = flowSPM->getWake(iw);
+	      if (wake != 0)
+	      {
+		Vector cp = wake->wakeCP();
+		ui.graphicsSectionY->setText(QString("%1").arg(cp.y,0,'f',2));
+		ui.graphicsSectionZ->setText(QString("%1").arg(cp.z,0,'f',2));
+		ui.graphicsSectionY->setVisible(TRUE);
+		ui.graphicsSectionZ->setVisible(TRUE);
+	      };
+            }
+            else
+            {
+              ui.graphicsSectionSelectStripe->setMaximum(0);
+	      ui.graphicsSectionSelectStripe->setMinimum(0);
+	      ui.graphicsSectionY->setVisible(FALSE);
+	      ui.graphicsSectionZ->setVisible(FALSE);
+            };
+          }
+          else
+          {
+            ui.graphicsSectionSelectStripe->setMaximum(0);
+	    ui.graphicsSectionSelectStripe->setMinimum(0);
+	    ui.graphicsSectionY->setVisible(FALSE);
+	    ui.graphicsSectionZ->setVisible(FALSE);
+	  };
+	}
+	break;
+      };
+    case 3 :
     // gamma 2D display
       {
 	break;
       };
-    case 3 :
+    case 4 :
     // cl cd plot
       {
 	break;
@@ -532,6 +598,34 @@ void MainWindow::on_doubleGraphicsRenderScaleMax_editingFinished()
     scalMuMax=ui.doubleGraphicsRenderScaleMax->value();
   updateGraphicsTab();
   updateGraph();
+}
+
+void MainWindow::on_graphicsSectionSelectModel_pressed()
+{
+  if (selectModelGraphics==SelectVLM)
+    selectModelGraphics=SelectSPM;
+  else
+    selectModelGraphics=SelectVLM;
+  updateGraphicsTab();
+  updateGraph();
+}
+
+void MainWindow::on_graphicsSectionSelectStripe_valueChanged(int value)
+{
+  updateGraphicsTab();
+  updateGraph();
+}
+
+void MainWindow::on_buttonGraphicsSectionPrintStripe_pressed()
+{
+  if (selectModelGraphics==SelectVLM)
+  {
+  }
+  else
+  {
+    if (flowSPM != 0)
+      flowSPM->printStripe(ui.graphicsSectionSelectStripe->value());
+  };
 }
 
 void MainWindow::on_graphGammaShowVLM_toggled()

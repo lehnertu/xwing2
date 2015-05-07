@@ -71,11 +71,6 @@ SourceDoubletModel::SourceDoubletModel(Model *geometrymodel)
   Globals::MainTextDisplay->append(
       QString("******************************"));
   model = geometrymodel;
-  mesh = new QList<FlatPanel*>();
-  wingref = new QList<int>();
-  varType = new QList<variableSigularityType>();
-  wakelines = new QList<Streamline*>();
-  wake = new QList<WakeStripe*>();
   // we need the free stream vector to create the wake mesh
   double aoa = model->getAOA();
   vInfinity = Vector(cos(M_PI/180.0*aoa), 0.0, sin(M_PI/180.0*aoa));
@@ -108,11 +103,12 @@ SourceDoubletModel::SourceDoubletModel(Model *geometrymodel)
       NumberOfPanels = 0;
       NumberOfWakes = 0;
       NumberOfFilaments = 0;
-      mesh->clear();
-      wingref->clear();
-      varType->clear();
-      wakelines->clear();
-      wake->clear();
+      mesh.clear();
+      wingref.clear();
+      varType.clear();
+      wakeref.clear();
+      wakelines.clear();
+      wake.clear();
       return;
     }
     else
@@ -133,15 +129,19 @@ SourceDoubletModel::SourceDoubletModel(Model *geometrymodel)
 	D = ol->pointVec(i2);
 	if ((A-D).norm()>1e-6)				// avoid degenerate panels
 	{
-	  mesh->append(new FlatPanel(A,B,C,D));
-	  wingref->append(w);
-	  varType->append(VariableSource);
+	  mesh.append(new FlatPanel(A,B,C,D));
+	  wingref.append(w);
+	  varType.append(VariableSource);
+          // no wake association
+          wakeref.append(-1);
 	}
 	else
 	{
-	  mesh->append(new FlatPanel(A,B,C));
-	  wingref->append(w);
-	  varType->append(VariableSource);
+	  mesh.append(new FlatPanel(A,B,C));
+	  wingref.append(w);
+	  varType.append(VariableSource);
+          // no wake association
+          wakeref.append(-1);
 	};
 	NumberOfPanels++;
 	i1+=1;
@@ -152,17 +152,21 @@ SourceDoubletModel::SourceDoubletModel(Model *geometrymodel)
 	    A = ol->pointVec(i1);
 	    B = ol->pointVec(i1+1);
 	    D = ol->pointVec(i2);
-	    mesh->append(new FlatPanel(A,B,D));
-	    wingref->append(w);
-	    varType->append(VariableSource);
+	    mesh.append(new FlatPanel(A,B,D));
+	    wingref.append(w);
+	    varType.append(VariableSource);
+          // no wake association
+            wakeref.append(-1);
 	  } else {
 	    A = ol->pointVec(i1);
 	    B = ol->pointVec(i1+1);
 	    C = ol->pointVec(i2-1);
 	    D = ol->pointVec(i2);
-	    mesh->append(new FlatPanel(A,B,C,D));
-	    wingref->append(w);
-	    varType->append(VariableSource);
+	    mesh.append(new FlatPanel(A,B,C,D));
+	    wingref.append(w);
+	    varType.append(VariableSource);
+          // no wake association
+            wakeref.append(-1);
 	  };
 	  NumberOfPanels++;
 	  i1+=1;
@@ -180,11 +184,12 @@ SourceDoubletModel::SourceDoubletModel(Model *geometrymodel)
       NumberOfPanels = 0;
       NumberOfWakes = 0;
       NumberOfFilaments = 0;
-      mesh->clear();
-      wingref->clear();
-      varType->clear();
-      wakelines->clear();
-      wake->clear();
+      mesh.clear();
+      wingref.clear();
+      varType.clear();
+      wakeref.clear();
+      wakelines.clear();
+      wake.clear();
       return;
     }
     else
@@ -205,14 +210,19 @@ SourceDoubletModel::SourceDoubletModel(Model *geometrymodel)
 	D = ol->pointVec(i2);
 	if ((A-D).norm()>1e-6)				// avoid degenerate panels
 	{
-	  mesh->append(new FlatPanel(D,C,B,A));
-	  wingref->append(w);
-	  varType->append(VariableSource);	}
+	  mesh.append(new FlatPanel(D,C,B,A));
+	  wingref.append(w);
+	  varType.append(VariableSource);
+          // no wake association
+          wakeref.append(-1);
+        }
 	else
 	{
-	  mesh->append(new FlatPanel(A,C,B));
-	  wingref->append(w);
-	  varType->append(VariableSource);
+	  mesh.append(new FlatPanel(A,C,B));
+	  wingref.append(w);
+	  varType.append(VariableSource);
+          // no wake association
+          wakeref.append(-1);
 	};
 	NumberOfPanels++;
 	i1+=1;
@@ -223,17 +233,21 @@ SourceDoubletModel::SourceDoubletModel(Model *geometrymodel)
 	    A = ol->pointVec(i1);
 	    B = ol->pointVec(i1+1);
 	    D = ol->pointVec(i2);
-	    mesh->append(new FlatPanel(A,D,B));
-	    wingref->append(w);
-	    varType->append(VariableSource);
+	    mesh.append(new FlatPanel(A,D,B));
+	    wingref.append(w);
+	    varType.append(VariableSource);
+          // no wake association
+            wakeref.append(-1);
 	  } else {
 	    A = ol->pointVec(i1);
 	    B = ol->pointVec(i1+1);
 	    C = ol->pointVec(i2-1);
 	    D = ol->pointVec(i2);
-	    mesh->append(new FlatPanel(A,D,C,B));
-	    wingref->append(w);
-	    varType->append(VariableSource);
+	    mesh.append(new FlatPanel(A,D,C,B));
+	    wingref.append(w);
+	    varType.append(VariableSource);
+          // no wake association
+            wakeref.append(-1);
 	  };
 	  NumberOfPanels++;
 	  i1+=1;
@@ -256,11 +270,12 @@ SourceDoubletModel::SourceDoubletModel(Model *geometrymodel)
 	NumberOfPanels = 0;
 	NumberOfWakes = 0;
 	NumberOfFilaments = 0;
-	mesh->clear();
-	wingref->clear();
-	varType->clear();
-	wakelines->clear();
-	wake->clear();
+	mesh.clear();
+	wingref.clear();
+	varType.clear();
+        wakeref.clear();
+	wakelines.clear();
+	wake.clear();
         return;
       };
     };
@@ -270,7 +285,7 @@ SourceDoubletModel::SourceDoubletModel(Model *geometrymodel)
     // count non-flat panels
     int nonflat=0;
     for (int i=NumberOfPanels-wingnpan; i<NumberOfPanels; i++)
-      if (!(mesh->at(i)->panelIsPlanar())) nonflat++;
+      if (!(mesh.at(i)->panelIsPlanar())) nonflat++;
     Globals::MainTextDisplay->append(QString("  %1 panels generated").arg(wingnpan));
     if (nonflat>0)
       Globals::MainTextDisplay->append(QString("  ! warning : %1 non-flat panels generated").arg(nonflat));
@@ -278,7 +293,7 @@ SourceDoubletModel::SourceDoubletModel(Model *geometrymodel)
     Globals::MainTextDisplay->append(QString("  %1 wake stripes generated").arg(wingnwake));
   };
   // check if numbers are correct
-  if (NumberOfPanels != mesh->count())
+  if (NumberOfPanels != mesh.count())
   {
     Globals::MainTextDisplay->append(
       QString("\nThis should never happen - program error"));
@@ -286,7 +301,7 @@ SourceDoubletModel::SourceDoubletModel(Model *geometrymodel)
       QString("The length of the list of panels differes from the counted number of generated panels."));
     valid = FALSE;
   };
-  if (NumberOfPanels != varType->count())
+  if (NumberOfPanels != varType.count())
   {
     Globals::MainTextDisplay->append(
       QString("\nThis should never happen - program error"));
@@ -294,7 +309,15 @@ SourceDoubletModel::SourceDoubletModel(Model *geometrymodel)
       QString("The length of the list of panel variable types differes from the number of generated panels."));
     valid = FALSE;
   };
-  if (NumberOfWakes != wake->count())
+  if (NumberOfPanels != wakeref.count())
+  {
+    Globals::MainTextDisplay->append(
+      QString("\nThis should never happen - program error"));
+    Globals::MainTextDisplay->append(
+      QString("The length of the list of wake references differes from the number of generated panels."));
+    valid = FALSE;
+  };
+  if (NumberOfWakes != wake.count())
   {
     Globals::MainTextDisplay->append(
       QString("\nThis should never happen - program error"));
@@ -302,7 +325,7 @@ SourceDoubletModel::SourceDoubletModel(Model *geometrymodel)
       QString("The length of the list of wakes differes from the counted number of generated stripes."));
     valid = FALSE;
   };
-  if (NumberOfFilaments != wakelines->count())
+  if (NumberOfFilaments != wakelines.count())
   {
     Globals::MainTextDisplay->append(
       QString("\nThis should never happen - program error"));
@@ -321,16 +344,16 @@ SourceDoubletModel::SourceDoubletModel(Model *geometrymodel)
     int indexCP=0;
     for (int icp=0; icp<NumberOfPanels; icp++)
     {
-      FlatPanel *p = mesh->at(icp);
-      // we use control points displaced to the inside of the panel
-      ControlPoint[indexCP] = p->panelCenter() + p->panelNormal()*0.0001;
+      FlatPanel *p = mesh.at(icp);
+      // we use control points displaced to the outside of the panel
+      ControlPoint[indexCP] = p->panelCenter() + p->panelNormal()*0.000001;
       normal[indexCP] = p->panelNormal();
       BC[indexCP] = PerturbationPotentialBC;
       indexCP++;
     };
     for (int iw=0; iw<NumberOfWakes; iw++)
     {
-      WakeStripe* wk = wake->at(iw);
+      WakeStripe* wk = wake.at(iw);
       ControlPoint[indexCP] = wk->wakeCP();
       normal[indexCP] = wk->wakeNormal();
       BC[indexCP] = NormalVelocityBC;
@@ -342,11 +365,12 @@ SourceDoubletModel::SourceDoubletModel(Model *geometrymodel)
     NumberOfPanels = 0;
     NumberOfWakes = 0;
     NumberOfFilaments = 0;
-    mesh->clear();
-    wingref->clear();
-    varType->clear();
-    wakelines->clear();
-    wake->clear();
+    mesh.clear();
+    wingref.clear();
+    varType.clear();
+    wakeref.clear();
+    wakelines.clear();
+    wake.clear();
     Globals::MainTextDisplay->append(QString("\nPaneling failed.\n"));
   };
 }
@@ -354,18 +378,13 @@ SourceDoubletModel::SourceDoubletModel(Model *geometrymodel)
 SourceDoubletModel::~SourceDoubletModel()
 {
   for (int i=0; i<NumberOfPanels; i++)
-    delete mesh->at(i);
-  delete mesh;
-  delete varType;
+    delete mesh.at(i);
   // printf("delete panels ok.\n");
   for (int i=0; i<NumberOfWakes; i++)
-    delete wake->at(i);
-  delete wake;
+    delete wake.at(i);
   // printf("delete wake ok.\n");
   for (int i=0; i<NumberOfFilaments; i++)
-    delete wakelines->at(i);
-  delete wakelines;
-  // printf("delete filaments ok.\n");
+    delete wakelines.at(i);
   // free all matrices and vectors belonging to the solution
   if (valid==TRUE)
   {
@@ -500,9 +519,10 @@ int SourceDoubletModel::createSegmentModel(int wingno, GeometrySegment *segment)
       B = leftSection->pointVec(i+1);
       C = rightSection->pointVec(i);
       D = rightSection->pointVec(i+1);
-      mesh->append(new FlatPanel(A,C,D,B));
-      wingref->append(wingno);
-      varType->append(VariableDoublet);
+      mesh.append(new FlatPanel(A,C,D,B));
+      wingref.append(wingno);
+      varType.append(VariableDoublet);
+      wakeref.append(NumberOfWakes);
       NumberOfPanels++;
       npan++;
     };
@@ -512,10 +532,10 @@ int SourceDoubletModel::createSegmentModel(int wingno, GeometrySegment *segment)
     bool exists=FALSE;
     for (int iw=0; iw<NumberOfFilaments; iw++)
     {
-      if ((wakelines->at(iw)->point(0)-start).norm()<1.0e-3)
+      if ((wakelines.at(iw)->point(0)-start).norm()<1.0e-3)
       {
 	exists = TRUE;
-	leftFilament = wakelines->at(iw);
+	leftFilament = wakelines.at(iw);
       }
     };
     // if the filament already exists (usually true for the left
@@ -524,7 +544,7 @@ int SourceDoubletModel::createSegmentModel(int wingno, GeometrySegment *segment)
     {
       leftFilament = new Streamline(start,1000.0*(model->getXinfinity()),model->getWakePanelNumber(),
 		direction,vInfinity);
-      wakelines->append(leftFilament);
+      wakelines.append(leftFilament);
       NumberOfFilaments++;
     };
     start = rightSection->pointVec(0);
@@ -532,24 +552,24 @@ int SourceDoubletModel::createSegmentModel(int wingno, GeometrySegment *segment)
     exists=FALSE;
     for (int iw=0; iw<NumberOfFilaments; iw++)
     {
-      if ((wakelines->at(iw)->point(0)-start).norm()<1.0e-3)
+      if ((wakelines.at(iw)->point(0)-start).norm()<1.0e-3)
       {
 	exists = TRUE;
-	rightFilament = wakelines->at(iw);
+	rightFilament = wakelines.at(iw);
       }
     };
     if (!exists)
     {
       rightFilament = new Streamline(start,1000.0*(model->getXinfinity()),model->getWakePanelNumber(),
 		direction,vInfinity);
-      wakelines->append(rightFilament);
+      wakelines.append(rightFilament);
       NumberOfFilaments++;
     };
     WakeStripe *wk = new WakeStripe(leftFilament,rightFilament);
     wk->setWingIndex(wingno);
     wk->setWingSpanPos(stripespan);
     wk->setWingChord(stripechord);
-    wake->append(wk);
+    wake.append(wk);
     NumberOfWakes++;
   };
   // clean up
@@ -568,6 +588,11 @@ bool SourceDoubletModel::isValid()
 bool SourceDoubletModel::isSolved()
 {
   return(validSolution);
+}
+
+int SourceDoubletModel::numberWakes()
+{
+  return(NumberOfWakes);
 }
 
 void SourceDoubletModel::sourcePanelsVTK(vtkPolyData *polyData,
@@ -592,7 +617,7 @@ void SourceDoubletModel::sourcePanelsVTK(vtkPolyData *polyData,
   int nop=0;
   for (int i=0; i<NumberOfPanels; i++)
   {
-    nop+=mesh->at(i)->panelNP();
+    nop+=mesh.at(i)->panelNP();
   };
   if (showNormals) nop+=2*NumberOfPanels;
   if (showFlowDirection && validSolution) nop+=2*NumberOfPanels;
@@ -602,7 +627,7 @@ void SourceDoubletModel::sourcePanelsVTK(vtkPolyData *polyData,
   index=0;
   for (int i=0; i<NumberOfPanels; i++)
   {
-    pan=mesh->at(i);
+    pan=mesh.at(i);
     NP=pan->panelNP();
     for (int np=0; np<NP; np++)
     {
@@ -628,11 +653,11 @@ void SourceDoubletModel::sourcePanelsVTK(vtkPolyData *polyData,
   {
     for (int i=0; i<NumberOfPanels; i++)
     {
-      p=mesh->at(i)->panelCenter();
+      p=mesh.at(i)->panelCenter();
       scalar->SetValue(index, -1000.0);
       // index keeps running
       pts->InsertPoint(index++, p.x, p.y, p.z);
-      p+=mesh->at(i)->panelNormal()*20.0;
+      p+=mesh.at(i)->panelNormal()*20.0;
       scalar->SetValue(index, -1000.0);
       // index keeps running
       pts->InsertPoint(index++, p.x, p.y, p.z);
@@ -643,7 +668,7 @@ void SourceDoubletModel::sourcePanelsVTK(vtkPolyData *polyData,
   {
     for (int i=0; i<NumberOfPanels; i++)
     {
-      p=mesh->at(i)->panelCenter();
+      p=mesh.at(i)->panelCenter();
       scalar->SetValue(index, 1000.0);
       // index keeps running
       pts->InsertPoint(index++, p.x, p.y, p.z);
@@ -662,7 +687,7 @@ void SourceDoubletModel::sourcePanelsVTK(vtkPolyData *polyData,
   index=0;
   for (int i=0; i<NumberOfPanels; i++)
   {
-    pan=mesh->at(i);
+    pan=mesh.at(i);
     NP=pan->panelNP();
     for (int np=0; np<NP-1; np++)
     {
@@ -712,7 +737,7 @@ void SourceDoubletModel::sourcePanelsVTK(vtkPolyData *polyData,
     index=0;
     for (int i=0; i<NumberOfPanels; i++)
     {
-      pan=mesh->at(i);
+      pan=mesh.at(i);
       NP=pan->panelNP();
       if (NP==4)
       {
@@ -745,7 +770,7 @@ void SourceDoubletModel::sourceWakeVTK(vtkPolyData *polyData)
   int NumberOfPoints = 0;		// number of points
   for (int i=0; i<NumberOfFilaments; i++)
   {
-    Streamline* wl = wakelines->at(i);
+    Streamline* wl = wakelines.at(i);
     NumberOfPoints += wl->segmentN()+1;
   };
   // first set all point coordinates
@@ -754,7 +779,7 @@ void SourceDoubletModel::sourceWakeVTK(vtkPolyData *polyData)
   int index=0;
   for (int i=0; i<NumberOfFilaments; i++)
   {
-    Streamline* wl = wakelines->at(i);
+    Streamline* wl = wakelines.at(i);
     int np = wl->segmentN()+1;
     for (int ip=0; ip<np; ip++)
     {
@@ -769,7 +794,7 @@ void SourceDoubletModel::sourceWakeVTK(vtkPolyData *polyData)
   index=0;
   for (int i=0; i<NumberOfFilaments; i++)
   {
-    Streamline* wl = wakelines->at(i);
+    Streamline* wl = wakelines.at(i);
     int ns = wl->segmentN();
     for (int line=0; line<ns; line++)
     {
@@ -790,7 +815,7 @@ void SourceDoubletModel::exportSTL(QTextStream *ts)
   {
     for (int i=0; i<NumberOfPanels; i++)
     {
-      FlatPanel *pan = mesh->at(i);	// a panel
+      FlatPanel *pan = mesh.at(i);	// a panel
       int NP = pan->panelNP();		// number of points for this panel
       if (NP==3)
       {					// output triangles directly
@@ -928,10 +953,8 @@ void SourceDoubletModel::runModelAOA(double aoa)
   { // begin parallel domain
     #pragma omp single
     {
-      printf("computing on %d cores\n",omp_get_num_procs());
       Globals::MainTextDisplay->append(
         QString("computing on %1 cores").arg(omp_get_num_procs()));
-      printf("computing with %d threads\n",omp_get_num_threads());
       Globals::MainTextDisplay->append(
         QString("computing with %1 threads").arg(omp_get_num_threads()));
     };
@@ -944,9 +967,9 @@ void SourceDoubletModel::runModelAOA(double aoa)
       if (!abort)
       {
 	// set a pointer to the panel being analyzed
-	p = mesh->at(ipan);
+	p = mesh.at(ipan);
         // debugging output
-        printf(" thread No. %d : panel %d\n",omp_get_thread_num(),ipan);
+        // printf(" thread No. %d : panel %d\n",omp_get_thread_num(),ipan);
 	// compute the influence at all control points
 	for (int icp=0; icp<NumberCP; icp++)
 	{
@@ -999,7 +1022,7 @@ void SourceDoubletModel::runModelAOA(double aoa)
       if (!abort)
       {
 	// set a pointer to the wake being analyzed
-	wk = wake->at(iw);
+	wk = wake.at(iw);
 	// compute the influence at all control points
 	for (int icp=0; icp<NumberCP; icp++)
 	{
@@ -1060,7 +1083,7 @@ void SourceDoubletModel::runModelAOA(double aoa)
   // sigma = - vinf . n
   for (int ipan=0; ipan<NumberOfPanels; ipan++)
   {
-    // if (varType->at(ipan) == VariableSource)
+    // if (varType.at(ipan) == VariableSource)
     //   sigSolution[ipan] = 0.0;
     // else
     sigSolution[ipan] = -dot(vInfinity,normal[ipan]);
@@ -1248,7 +1271,7 @@ Vector SourceDoubletModel::flowPoint(Vector x)
     for (int ipan=0; ipan<NumberOfPanels; ipan++)
     {
       // set a pointer to the panel being analyzed
-      FlatPanel *p = mesh->at(ipan);
+      FlatPanel *p = mesh.at(ipan);
       p->ComputePIC(x);
       v += p->ConstSourceVelocity() * sigSolution[ipan];
       v += p->ConstDoubletVelocity() * muSolution[ipan];
@@ -1256,7 +1279,7 @@ Vector SourceDoubletModel::flowPoint(Vector x)
     for (int iw=0; iw<NumberOfWakes; iw++)
     {
       // set a pointer to the wake being analyzed
-      WakeStripe *wk = wake->at(iw);
+      WakeStripe *wk = wake.at(iw);
       v += wk->inducedVelocity(x) * muSolution[NumberOfPanels+iw];
     };
   }
@@ -1314,9 +1337,9 @@ void SourceDoubletModel::analyzePressure()
     Vector wingForce = Vector(0.0, 0.0, 0.0);
     double surface = 0.0;
     for (int ip=0; ip<NumberOfPanels; ip++)
-      if (wingref->at(ip) == wing+1)
+      if (wingref.at(ip) == wing+1)
       {
-	FlatPanel *p = mesh->at(ip);
+	FlatPanel *p = mesh.at(ip);
 	// p-p(inf) = rho/2 V cp
 	surface += p->panelArea();
 	Vector force = p->panelNormal() * p->panelArea() * -cpSolution[ip];
@@ -1389,7 +1412,7 @@ void SourceDoubletModel::analyzeWake()
     Trefftz_data_avail = TRUE;
     for (int iw=0; iw<NumberOfWakes; iw++)
     {
-      WakeStripe *wk = wake->at(iw);
+      WakeStripe *wk = wake.at(iw);
       // get the ends of the wake
       Vector x1 = wk->wakeInfinity(1);
       Vector x2 = wk->wakeInfinity(2);
@@ -1430,7 +1453,7 @@ void SourceDoubletModel::analyzeWake()
     double ref_span = Globals::GeometryModel->getRefSpan();
     for (int icp=0; icp<NumberOfWakes; icp++)
     {
-      WakeStripe *wk = wake->at(icp);
+      WakeStripe *wk = wake.at(icp);
       double chord = wk->getWingChord();
       // S units are mm
       Vector S = Trefftz_x2[icp] - Trefftz_x1[icp];
@@ -1516,7 +1539,7 @@ void SourceDoubletModel::printPaneling()
     Globals::MainTextDisplay->append(QString("-----------------------------------------------------------------------------------------------------"));
     for (int ipan=0; ipan<NumberOfPanels; ipan++)
     {
-      FlatPanel *p = mesh->at(ipan);
+      FlatPanel *p = mesh.at(ipan);
       Vector pc = p->panelCenter();
       Vector pn = p->panelNormal();
       Globals::MainTextDisplay->append(QString("  %1 :\t(%2   %3   %4  )  \t(%5   %6   %7  )")
@@ -1589,7 +1612,7 @@ void SourceDoubletModel::printCirculation()
     Globals::MainTextDisplay->append(QString("----------------------------------------------------------------------------------------------------------------------------------------------------------------"));
     for (int iw=0; iw<NumberOfWakes; iw++)
     {
-      WakeStripe *wk = wake->at(iw);
+      WakeStripe *wk = wake.at(iw);
       Globals::MainTextDisplay->append(QString("  %1 :  %2\t%3\t  %4  \t%5  %6          (%7  %8  %9 )")
 	.arg(iw,4)
 	.arg(wk->getWingIndex(),10)
@@ -1604,11 +1627,138 @@ void SourceDoubletModel::printCirculation()
   }
 }
 
+void SourceDoubletModel::printStripe(int iw)
+{
+  if(valid && (iw>=0) && (iw<NumberOfWakes))
+  {
+    Globals::MainTextDisplay->append(QString("\nflow properties of panel stripe %1:\n").arg(iw));
+    QString tab =
+    QString("<p style=\"font-size:9pt\">")+
+    QString("<table cellpadding=\"0\" cellspacing=\"0\">")+
+    QString("<tr>")+
+    QString("<td width = \"100\"></td>")+
+    QString("<td width = \"250\">panel center</td>")+
+    QString("<td width = \"150\">doublet</td>")+
+    QString("<td width = \"150\">source</td>")+
+    QString("<td width = \"150\">pressure</td>")+
+    QString("</tr>")+
+    QString("<tr>")+
+    QString("<td></td>")+
+    QString("<td></td>")+
+    QString("<td>strength</td>")+
+    QString("<td>strength</td>")+
+    QString("<td>coefficient</td>")+
+    QString("</tr>");
+    for (int ipan=0; ipan<NumberOfPanels; ipan++)
+    {
+      if (wakeref.at(ipan)==iw)
+      {
+	FlatPanel *p = mesh.at(ipan);
+	Vector pc = p->panelCenter();
+	double mu = 0.0;
+	double sig = 0.0;
+	double cp = 0.0;
+	if (validSolution)
+	{
+	  mu = muSolution[ipan];
+	  sig = sigSolution[ipan];
+	  cp = cpSolution[ipan];
+	};
+	tab += QString("<tr>");
+	tab += QString("<td>%1</td>").arg(ipan,4);
+	tab += QString("<td>(  %1      %2      %3   )</td>").arg(pc.x,8,'f',2).arg(pc.y,8,'f',2).arg(pc.z,8,'f',2);
+	tab += QString("<td>%1</td>").arg(mu,12,'e',3);
+	tab += QString("<td>%1</td>").arg(sig,12,'e',3);
+	tab += QString("<td>%1</td>").arg(cp,12,'e',3);
+	tab += QString("</tr>");
+      };
+    };
+    double muw = 0.0;
+    if (validSolution)
+      muw = muSolution[NumberOfPanels+iw];
+    Vector wcp = wake.at(iw)->wakeCP();
+    Vector wn = wake.at(iw)->wakeNormal();
+    tab += QString("<tr>");
+    tab += QString("<td>wake</td>");
+    tab += QString("<td>(  %1      %2      %3   )</td>").arg(wcp.x,8,'f',2).arg(wcp.y,8,'f',2).arg(wcp.z,8,'f',2);
+    tab += QString("<td>%1</td>").arg(muw,12,'e',3);
+    tab += QString("<td></td>");
+    tab += QString("<td>n = (  %1      %2      %3   )</td>").arg(wn.x,8,'f',2).arg(wn.y,8,'f',2).arg(wn.z,8,'f',2);
+    tab += QString("</tr>");
+    tab += QString("</table></p>");
+    Globals::MainTextDisplay->append(tab);
+    Globals::MainTextDisplay->append(QString("\n"));
+  };
+}
+
+WakeStripe* SourceDoubletModel::getWake(int iw)
+{
+  if (valid && (iw>=0) && (iw<NumberOfWakes))
+    return(wake.at(iw));
+  else
+    return(0);
+}
+
+void SourceDoubletModel::sourceStripePlot(vtkChartXY *chart, int iw)
+{
+  if (validSolution)
+  {
+    // create a table with two columns for the panel data
+    vtkSmartPointer<vtkTable> table = vtkSmartPointer<vtkTable>::New();
+    vtkSmartPointer<vtkFloatArray> arrX = vtkSmartPointer<vtkFloatArray>::New();
+    arrX->SetName("x [mm]");
+    table->AddColumn(arrX);
+    vtkSmartPointer<vtkFloatArray> arrCp = vtkSmartPointer<vtkFloatArray>::New();
+    arrCp->SetName("cp");
+    table->AddColumn(arrCp);
+    // the first run through the panels is just to determine the number of entries
+    int np = 0;
+    for (int ipan=0; ipan<NumberOfPanels; ipan++)
+    {
+      if (wakeref.at(ipan)==iw) np++;
+    };
+    table->SetNumberOfRows(np);
+    // now fill the table with values
+    int ip=0;	// the line index
+    double xmin=1.0e12;
+    double xmax=-1.0e12;
+    double cpmin=1.0e12;
+    double cpmax=-1.0e12;
+    for (int ipan=0; ipan<NumberOfPanels; ipan++)
+    {
+      if (wakeref.at(ipan)==iw)
+      {
+	FlatPanel *p = mesh.at(ipan);
+	double x=p->panelCenter().x;
+	if (x<xmin) xmin=x;
+	if (x>xmax) xmax=x;
+	table->SetValue(ip, 0, x);
+	double cp=cpSolution[ipan];
+	if (cp<cpmin) cpmin=cp;
+	if (cp>cpmax) cpmax=cp;
+	table->SetValue(ip, 1, cp);
+	ip++;
+      };
+    };
+    // add the plot
+    vtkPlot *pl = chart->AddPlot(vtkChart::LINE);
+    pl->SetInputData(table, 0, 1);
+    // decorate the chart
+    chart->SetDrawAxesAtOrigin(false);
+    chart->SetShowLegend(false);
+    chart->GetAxis(vtkAxis::LEFT)->SetMinimum(1.1*cpmax-0.1*cpmin);
+    chart->GetAxis(vtkAxis::LEFT)->SetMaximum(1.1*cpmin-0.1*cpmax);
+    chart->GetAxis(vtkAxis::LEFT)->SetTitle("cp");
+    chart->GetAxis(vtkAxis::LEFT)->SetBehavior(vtkAxis::FIXED);
+    chart->GetAxis(vtkAxis::BOTTOM)->SetMinimum(xmin);
+    chart->GetAxis(vtkAxis::BOTTOM)->SetMaximum(xmax);
+    chart->GetAxis(vtkAxis::BOTTOM)->SetTitle("x position [mm]");
+  };
+}
+
 void SourceDoubletModel::sourceGammaPlot(vtkChartXY *chart)
 {
   char label[40];
-  // remove all previous plots
-  // chart->ClearPlots();
   if (validSolution && Trefftz_data_avail)
   {
     // keep track of the extreme circulation values
@@ -1622,7 +1772,7 @@ void SourceDoubletModel::sourceGammaPlot(vtkChartXY *chart)
       int nw = 0;
       for (int iw=0; iw<NumberOfWakes; iw++)
       {
-	WakeStripe *wk = wake->at(iw);
+	WakeStripe *wk = wake.at(iw);
 	if (wk->getWingIndex() == wing+1) nw++;
       };
       // create a table with two columns for the model data
@@ -1639,7 +1789,7 @@ void SourceDoubletModel::sourceGammaPlot(vtkChartXY *chart)
       int it = 0; // index in the table
       for (int iw=0; iw<NumberOfWakes; iw++)
       {
-	WakeStripe *wk = wake->at(iw);
+	WakeStripe *wk = wake.at(iw);
 	if (wk->getWingIndex() == wing+1)
 	{
 	  double s = wk->getWingSpanPos();
@@ -1716,7 +1866,7 @@ void SourceDoubletModel::sourceClCdPlot(vtkChartXY *chart)
       int nw = 0;
       for (int iw=0; iw<NumberOfWakes; iw++)
       {
-	WakeStripe *wk = wake->at(iw);
+	WakeStripe *wk = wake.at(iw);
 	if (wk->getWingIndex() == wing+1) nw++;
       };
       // create a table with 3 columns for the model data
@@ -1737,7 +1887,7 @@ void SourceDoubletModel::sourceClCdPlot(vtkChartXY *chart)
       int it = 0; // index in the table
       for (int iw=0; iw<NumberOfWakes; iw++)
       {
-	WakeStripe *wk = wake->at(iw);
+	WakeStripe *wk = wake.at(iw);
 	if (wk->getWingIndex() == wing+1)
 	{
 	  double s = wk->getWingSpanPos();
