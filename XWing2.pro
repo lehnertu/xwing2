@@ -6,47 +6,19 @@
 TEMPLATE = app
 TARGET = XWing2
 
+
 DEPENDPATH += . ./src
 INCLUDEPATH += . ./src
 SOURCES_DIR = ./src
 
-# one has to define the machine on which the program is compiled
-# by calling is with something like
-# qmake "CONFIG+=fwl78"
+# OPEN_BLAS_INCLUDE_PATH = /usr/include
+OPEN_BLAS_INCLUDE_PATH = /home/ulf/Programming/OpenBLAS
+OPEN_BLAS_LIB_PATH = /home/ulf/Programming/OpenBLAS/lib
 
-# compile on HYPNOS
-hypnos {
-  message("setting paths for HYPNOS")
-  OPEN_BLAS_PATH = /home/lehnertu/Programming/OpenBLAS
-  # module load openblas
-  OPENBLAS_ROOT = /opt/pkg/numlib/openblas/0.2.8/gnu/4.8.2/64/opt
-  OPEN_BLAS_PATH = /opt/pkg/numlib/openblas/0.2.8/gnu/4.8.2/64/opt
-  VTK_PATH = /home/lehnertu/Programming/VTK6.0.0_install/
-  VTK_INCLUDE_PATH = $$VTK_PATH/include/vtk-6.0/
-  VTK_LIB_PATH = $$VTK_PATH/lib/
-}
+VTK_INCLUDE_PATH = /usr/include/vtk-6.1
+VTK_LIB_PATH = /usr/lib/x86_64-linux-gnu
 
-# compile on FWL08
-fwl08 {
-  message("setting paths for FWL08")
-  OPEN_BLAS_PATH = /home/lehnertu/Programming/OpenBLAS
-  VTK_PATH = /home/lehnertu/Programming/VTK6.0.0_install/
-  VTK_INCLUDE_PATH = $$VTK_PATH/include/vtk-6.0/
-  VTK_LIB_PATH = $$VTK_PATH/lib/
-}
-
-# compile on laptop
-fwl78 {
-  message("setting paths for FWL78")
-  OPEN_BLAS_PATH = /home/ulf/Programming/openblas-r0.2.8.a
-  VTK_PATH = /home/ulf/Programming/VTK
-  VTK_INCLUDE_PATH = $$VTK_PATH/include/vtk-6.0/
-  VTK_LIB_PATH = $$VTK_PATH/lib/
-#  VTK_INCLUDE_PATH = /home/ulf/Programming/VTK6.0.0/
-#  VTK_LIB_PATH = /home/ulf/Programming/VTK6.0.0_build/lib/
-}
-
-INCLUDEPATH += $$OPEN_BLAS_PATH/include
+INCLUDEPATH += $$OPEN_BLAS_INCLUDE_PATH
 INCLUDEPATH += $$VTK_INCLUDE_PATH
 
 MOC_DIR = ./obj
@@ -95,28 +67,29 @@ SOURCES += src/airfoil.cxx \
            src/wakestripe.cxx
 
 LIBS += -L$$VTK_LIB_PATH \
-	-lvtkChartsCore-6.0 \
-	-lvtkCommonCore-6.0 \
-	-lvtkCommonDataModel-6.0 \
-	-lvtkCommonExecutionModel-6.0 \
-	-lvtkFiltersCore-6.0 \
-	-lvtkFiltersExtraction-6.0 \
-	-lvtkFiltersStatistics-6.0 \
-	-lvtkImagingCore-6.0 \
-	-lvtkImagingHybrid-6.0 \
-	-lvtkInteractionStyle-6.0 \
-	-lvtkRenderingAnnotation-6.0 \
-	-lvtkRenderingCore-6.0 \
-	-lvtkRenderingContext2D-6.0 \
-	-lvtkRenderingFreeType-6.0 \
-	-lvtkRenderingOpenGL-6.0 \
-	-lvtkRenderingFreeTypeOpenGL-6.0 \
-	-lvtkRenderingVolumeOpenGL-6.0 \
-	-lvtkViewsContext2D-6.0 \
-	-lvtkGUISupportQt-6.0 \
-	-lvtkIOImage-6.0 \
-	-lvtksys-6.0 \
-	$$OPEN_BLAS_PATH/lib/libopenblas.a \
+	-lvtkChartsCore-6.1 \
+	-lvtkCommonCore-6.1 \
+	-lvtkCommonDataModel-6.1 \
+	-lvtkCommonExecutionModel-6.1 \
+	-lvtkFiltersCore-6.1 \
+	-lvtkFiltersExtraction-6.1 \
+	-lvtkFiltersStatistics-6.1 \
+	-lvtkImagingCore-6.1 \
+	-lvtkImagingHybrid-6.1 \
+	-lvtkInteractionStyle-6.1 \
+	-lvtkRenderingAnnotation-6.1 \
+	-lvtkRenderingCore-6.1 \
+	-lvtkRenderingContext2D-6.1 \
+	-lvtkRenderingFreeType-6.1 \
+	-lvtkRenderingOpenGL-6.1 \
+	-lvtkRenderingFreeTypeOpenGL-6.1 \
+	-lvtkRenderingVolumeOpenGL-6.1 \
+	-lvtkViewsContext2D-6.1 \
+	-lvtkGUISupportQt-6.1 \
+	-lvtkIOImage-6.1 \
+	-lvtksys-6.1 \
+	$$OPEN_BLAS_LIB_PATH/libopenblas.a \
+	/usr/lib/liblapacke.a \
 	-lgomp
 
 QMAKE_CXXFLAGS += -Wno-deprecated \
@@ -124,7 +97,7 @@ QMAKE_CXXFLAGS += -Wno-deprecated \
 
 QMAKE_LFLAGS += -Wl,-rpath,$$VTK_LIB_PATH
 
-# CONFIG += debug
+CONFIG += debug
 # CONFIG += console
 
 QT += xml

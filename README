@@ -6,9 +6,25 @@
 /*           XX  XX      W W W W      I   N   N N   G    G              */
 /*         XX      XX     W   W      III  N    NN    GGGG               */
 /*                                                                      */
-/*  Version 2.0                                    U.Lehnert 11/2013    */
+/*  Version 2.0                                    U.Lehnert 05/2018    */
 /*                                                                      */
 /************************************************************************/
+
+***** Library dependencies
+
+- OpenBLAS:
+    git clone https://github.com/xianyi/OpenBLAS.git
+    cmake .
+    make
+
+- VTK-6.1: install from repository
+
+***** Compile
+
+    mkdir build
+    cd build
+    cmake ..
+    make
 
 ***** To-Do Liste :
 

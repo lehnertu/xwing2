@@ -49,7 +49,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 // include <gsl/gsl_statistics.h>
 
 // OpenBLAS
-#include "cblas.h"
+// include "cblas.h"
 #include "lapacke.h"
 
 // for parallel threads
@@ -1150,10 +1150,12 @@ void SourceDoubletModel::runModelAOA(double aoa)
   Globals::MainStatusBar->repaint();
 
   // use OpenBLAS for solving the linear system of equations
+  /*
   int typepar = openblas_get_parallel();
   if (typepar==0) Globals::MainTextDisplay->append(QString("OpenBLAS type 0: sequential"));
   if (typepar==1) Globals::MainTextDisplay->append(QString("OpenBLAS type 1: pthread"));
   if (typepar==2) Globals::MainTextDisplay->append(QString("OpenBLAS type 2: OpenMP"));
+  */
   int *ipiv = (int*)malloc(sizeof(int)*NumberCP);
   int info = LAPACKE_dgesv(
       LAPACK_ROW_MAJOR,		// storage ordering of the matrix
