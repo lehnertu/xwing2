@@ -32,8 +32,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #ifndef GLOBAL_H
 #define GLOBAL_H
 
+#define FALSE false
+#define TRUE true
+
 #include <iostream>
 #include <QtGui>
+#include <QtWidgets/QTextEdit>
+#include <QtWidgets/QStatusBar>
 
 enum geometryHighlightMode
 {

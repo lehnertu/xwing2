@@ -34,6 +34,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #include <QtGui>
 #include <QEvent>
+#include <QtWidgets/QGroupBox>
 
 // Es wird eine eigene Klasse von der QGroupBox abgeleitet,
 // um ein zusätzliches Signal FocusChange() zu generieren.

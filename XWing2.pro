@@ -101,3 +101,4 @@ CONFIG += debug
 # CONFIG += console
 
 QT += xml
+QT += widgets

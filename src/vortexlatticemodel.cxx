@@ -33,6 +33,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "vortexlatticemodel.h"
 #include "airfoil.h"
 
+#include <QtWidgets/QProgressDialog>
+
 #include <vtkCellArray.h>
 #include "vtkFloatArray.h"
 #include "vtkPointData.h"
